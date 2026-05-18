@@ -16,7 +16,7 @@ Game::Game()
 
     mPlatforms.emplace_back(sf::Vector2f{ 0.f, 550.f }, sf::Vector2f{ 800.f, 50.f }, PlatformType::Solid);
 
-    mPlatforms.emplace_back(sf::Vector2f{ 560.f, 410.f }, sf::Vector2f{ 70.f, 160.f }, PlatformType::Solid);
+    mPlatforms.emplace_back(sf::Vector2f{ 560.f, 420.f }, sf::Vector2f{ 70.f, 170.f }, PlatformType::Solid);
 
     mPlatforms.emplace_back(sf::Vector2f{ 250.f, 300.f }, sf::Vector2f{ 200.f, 20.f }, PlatformType::OneWay);
 

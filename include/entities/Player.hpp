@@ -15,7 +15,7 @@ private:
 
     // ghost jump
     sf::Time mGhostJumpTimer;
-    const sf::Time GhostJump_DURATION = sf::seconds(0.15f); // 150 миллисекунд окна для прыжка
+    const sf::Time GhostJump_DURATION = sf::seconds(0.08f); // 50 миллисекунд окна для прыжка
     bool mCanGhostJump;
 
     const std::vector<Platform>* mPlatforms; // указатель на платформы
