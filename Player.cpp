@@ -6,18 +6,17 @@ Player::Player()
     sf::Image defaultImage({ 50u, 80u }, sf::Color::Cyan);
 
     if (mTexture.loadFromImage(defaultImage)) {
-        // Второй параметр true принудительно сбрасывает прямоугольник отрисовки 
-        // под новый реальный размер загруженной картинки (50x80)
+
         mSprite.setTexture(mTexture, true);
     }
 
-    setPosition({ 200.f, 400.f }); // Поднимем чуть выше, чтобы точно не промахнуться мимо экрана
+    setPosition({ 200.f, 100.f });
 }
 
 void Player::update(sf::Time deltaTime) {
     sf::Vector2f movement(0.f, 0.f);
+    float dt = deltaTime.asSeconds();
 
-    // Считываем нажатия клавиш
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) {
         movement.x -= mMovementSpeed;
     }
@@ -25,8 +24,24 @@ void Player::update(sf::Time deltaTime) {
         movement.x += mMovementSpeed;
     }
 
-    // Применяем движение с учетом deltaTime (чтобы скорость не зависела от FPS)
-    mPosition += movement * deltaTime.asSeconds();
+    if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) && mIsGrounded) {
+        mVelocityY = JUMP_FORCE;
+        mIsGrounded = false;
+    }
+
+    if (!mIsGrounded) {
+        mVelocityY += GRAVITY * dt;
+    }
+
+    movement.y = mVelocityY;
+    mPosition += movement * dt;
+
+    if (mPosition.y >= FLOOR_LEVEL) {
+        mPosition.y = FLOOR_LEVEL;
+        mVelocityY = 0.f;
+        mIsGrounded = true;
+    }
+
     mSprite.setPosition(mPosition);
 }
 
