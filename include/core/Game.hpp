@@ -1,4 +1,5 @@
 #pragma once
+#include"core/Player.hpp"
 #include"include.hpp"
 
 class Game {
@@ -10,6 +11,7 @@ private:
 	sf::Time TimePerFrame;
 	std::vector<int> entityList;
 
+	Player mPlayer;
 
 public:
 	Game();

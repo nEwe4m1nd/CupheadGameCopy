@@ -62,14 +62,14 @@ void Game::processEvents() {
 
 // обновление логики
 void Game::update(sf::Time deltaTime) {
-    //  добавить обновление списка сущностей (entityList)
+    mPlayer.update(deltaTime); // Обновляем логику игрока
 }
 
 // отрисовка
 void Game::render() {
-    GameWindow.clear(sf::Color(40, 40, 40)); // серый
+    GameWindow.clear(sf::Color(40, 40, 40));
 
-    // цикл отрисовки спрайтов из entityList
+    mPlayer.draw(GameWindow); // Отрисовываем игрока на экран
 
-    GameWindow.display(); // вывод буфера
+    GameWindow.display();
 }

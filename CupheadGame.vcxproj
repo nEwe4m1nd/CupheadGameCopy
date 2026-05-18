@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Entity.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="scr\core\Game.cpp" />
     <ClCompile Include="scr\main.cpp" />
   </ItemGroup>
@@ -29,7 +31,9 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\core\Entity.hpp" />
     <ClInclude Include="include\core\Game.hpp" />
+    <ClInclude Include="include\core\Player.hpp" />
     <ClInclude Include="include\include.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
