@@ -62,14 +62,14 @@ void Game::processEvents() {
 
 // обновление логики
 void Game::update(sf::Time deltaTime) {
-    mPlayer.update(deltaTime); // Обновляем логику игрока
+    mPlayer.update(deltaTime);
 }
 
 // отрисовка
 void Game::render() {
     GameWindow.clear(sf::Color(40, 40, 40));
 
-    mPlayer.draw(GameWindow); // Отрисовываем игрока на экран
+    mPlayer.draw(GameWindow);
 
     GameWindow.display();
 }
