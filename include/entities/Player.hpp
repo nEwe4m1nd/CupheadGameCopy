@@ -1,21 +1,30 @@
 #pragma once
-#include "Entity.hpp"
+#include "core/Entity.hpp"
+#include "core/Platform.hpp"
+#include <vector>
 
 class Player : public Entity {
 private:
     float mMovementSpeed;
-
     float mVelocityY;
     bool mIsGrounded;
 
     // настройки баланса
     const float GRAVITY = 1980.f;    // cила притяжения (пиксель/сек^2)
     const float JUMP_FORCE = -750.f; // импульс прыжка
-    const float FLOOR_LEVEL = 450.f; // временная хрень
+
+    // ghost jump
+    sf::Time mGhostJumpTimer;
+    const sf::Time GhostJump_DURATION = sf::seconds(0.07f); // 70 миллисекунд окна для прыжка
+    bool mCanGhostJump;
+
+    const std::vector<Platform>* mPlatforms; // указатель на платформы
 
 public:
     Player();
 
     void update(sf::Time deltaTime) override;
     void draw(sf::RenderTarget& target) const override;
+
+    void setPlatforms(const std::vector<Platform>& platforms);
 };

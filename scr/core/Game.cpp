@@ -7,13 +7,20 @@ const sf::Vector2u Resolution_FHD(1920u, 1080u);
 
 
 Game::Game()
-    : WindowResolution({ 1280u, 720u }),
-    GameWindow(sf::VideoMode(WindowResolution), "Cuphead Clone Project"),
+    : GameWindow(sf::VideoMode({ 800u, 600u }), "Cuphead Game"),
     Timer(),
     timeSinceLastUpdate(sf::Time::Zero),
-    TimePerFrame(sf::seconds(1.f / 60.f)) // 60 тик/секуда
+    TimePerFrame(sf::seconds(1.f / 60.f))
 {
     GameWindow.setFramerateLimit(60);
+
+    mPlatforms.emplace_back(sf::Vector2f{ 0.f, 550.f }, sf::Vector2f{ 800.f, 50.f }, PlatformType::Solid);
+
+    mPlatforms.emplace_back(sf::Vector2f{ 560.f, 420.f }, sf::Vector2f{ 70.f, 170.f }, PlatformType::Solid);
+
+    mPlatforms.emplace_back(sf::Vector2f{ 250.f, 300.f }, sf::Vector2f{ 200.f, 20.f }, PlatformType::OneWay);
+
+    mPlayer.setPlatforms(mPlatforms);
 }
 
 
@@ -68,6 +75,10 @@ void Game::update(sf::Time deltaTime) {
 // отрисовка
 void Game::render() {
     GameWindow.clear(sf::Color(40, 40, 40));
+
+    for (const auto& platform : mPlatforms) {
+        platform.draw(GameWindow);
+    }
 
     mPlayer.draw(GameWindow);
 
