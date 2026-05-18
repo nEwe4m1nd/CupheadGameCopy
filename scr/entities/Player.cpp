@@ -4,7 +4,7 @@ Player::Player()
     : mMovementSpeed(400.f)
     , mVelocityY(0.f)
     , mIsGrounded(false)
-    , mPlatforms(nullptr) // При создании игрок пока не знает про карту
+    , mPlatforms(nullptr)
 {
     sf::Image defaultImage({ 50u, 80u }, sf::Color::Cyan);
     if (mTexture.loadFromImage(defaultImage)) {
@@ -14,7 +14,7 @@ Player::Player()
 }
 
 void Player::setPlatforms(const std::vector<Platform>& platforms) {
-    mPlatforms = &platforms; // Запоминаем адрес вектора платформ
+    mPlatforms = &platforms;
 }
 
 void Player::update(sf::Time deltaTime) {
@@ -41,8 +41,8 @@ void Player::update(sf::Time deltaTime) {
         moveInput.x += mMovementSpeed;
     }
 
-    // Прыжок срабатывает, если мы на земле ИЛИ в окне Ghost Jump
-    if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))) {
+    // прыжок
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) {
         if (mIsGrounded || mCanGhostJump) {
             mVelocityY = JUMP_FORCE;
             mIsGrounded = false;
@@ -93,7 +93,14 @@ void Player::update(sf::Time deltaTime) {
                     float playerBottom = mSprite.getGlobalBounds().position.y + mSprite.getGlobalBounds().size.y;
                     float platformTop = platform.getBounds().position.y;
 
-                    if (mVelocityY > 0.f && (playerBottom - intersection->size.y <= platformTop + 5.f)) {
+                    if (mVelocityY >= 0.f && (playerBottom - intersection->size.y <= platformTop + 5.f)) {
+  
+                        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
+                            mVelocityY = 100.f;
+                            mIsGrounded = false;
+                            continue;
+                        }
+
                         mPosition.y -= intersection->size.y;
                         mVelocityY = 0.f;
                         touchedGroundThisFrame = true;
