@@ -19,9 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Entity.cpp" />
-    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="scr\core\Entity.cpp" />
     <ClCompile Include="scr\core\Game.cpp" />
+    <ClCompile Include="scr\core\Platform.cpp" />
+    <ClCompile Include="scr\entities\Player.cpp" />
     <ClCompile Include="scr\main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -33,7 +34,8 @@
   <ItemGroup>
     <ClInclude Include="include\core\Entity.hpp" />
     <ClInclude Include="include\core\Game.hpp" />
-    <ClInclude Include="include\core\Player.hpp" />
+    <ClInclude Include="include\core\Platform.hpp" />
+    <ClInclude Include="include\entities\Player.hpp" />
     <ClInclude Include="include\include.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

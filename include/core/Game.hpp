@@ -1,6 +1,7 @@
 #pragma once
-#include"core/Player.hpp"
-#include"include.hpp"
+#include "entities/Player.hpp"
+#include "core/Platform.hpp"
+#include <vector>
 
 class Game {
 private:
@@ -12,6 +13,7 @@ private:
 	std::vector<int> entityList;
 
 	Player mPlayer;
+	std::vector<Platform> mPlatforms;
 
 public:
 	Game();
