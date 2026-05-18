@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Исходные файлы">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Файлы заголовков">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Файлы ресурсов">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Исходные файлы\data">
+      <UniqueIdentifier>{a02f5bef-1774-4a04-8080-a0f6dc58f2b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\src">
+      <UniqueIdentifier>{36a82250-cbc2-43fc-bcdb-7d202bff4595}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\src\core">
+      <UniqueIdentifier>{7765fdf1-8a23-4928-91f0-6f739ff5b241}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\src\entities">
+      <UniqueIdentifier>{75013385-889c-4151-b84b-969c477dcf2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\include">
+      <UniqueIdentifier>{aa5c9ccb-f3d5-4d49-8be2-c37e28801083}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\include">
+      <UniqueIdentifier>{d5dda5be-4a5e-421e-9bb2-7b13edacca2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\include\core">
+      <UniqueIdentifier>{fc050c6b-2f33-43af-a789-686faf1b01d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\include\entities">
+      <UniqueIdentifier>{85d7bcae-f781-4dea-b063-0ed52e47a4c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\include\levels">
+      <UniqueIdentifier>{a4c611fd-2b60-4993-8cbc-c7a4f5da78cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\core">
+      <UniqueIdentifier>{0d58ed32-94cf-4c09-8f12-ca8918ef4e30}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="scr\main.cpp">
+      <Filter>Исходные файлы\src</Filter>
+    </ClCompile>
+    <ClCompile Include="scr\core\Game.cpp">
+      <Filter>Исходные файлы\src\core</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="LICENSE.txt">
+      <Filter>Исходные файлы</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md">
+      <Filter>Исходные файлы</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\include.hpp">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="include\core\Game.hpp">
+      <Filter>Файлы заголовков\core</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
