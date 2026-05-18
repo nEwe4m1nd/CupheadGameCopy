@@ -6,13 +6,17 @@
 class Player : public Entity {
 private:
     float mMovementSpeed;
-
     float mVelocityY;
     bool mIsGrounded;
 
     // настройки баланса
     const float GRAVITY = 1980.f;    // cила притяжения (пиксель/сек^2)
     const float JUMP_FORCE = -750.f; // импульс прыжка
+
+    // ghost jump
+    sf::Time mGhostJumpTimer;
+    const sf::Time GhostJump_DURATION = sf::seconds(0.15f); // 150 миллисекунд окна для прыжка
+    bool mCanGhostJump;
 
     const std::vector<Platform>* mPlatforms; // указатель на платформы
 

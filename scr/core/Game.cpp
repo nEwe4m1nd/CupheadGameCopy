@@ -10,17 +10,14 @@ Game::Game()
     : GameWindow(sf::VideoMode({ 800u, 600u }), "Cuphead Game"),
     Timer(),
     timeSinceLastUpdate(sf::Time::Zero),
-    TimePerFrame(sf::seconds(1.f / 60.f)) // Задаем фиксированный шаг времени!
+    TimePerFrame(sf::seconds(1.f / 60.f))
 {
     GameWindow.setFramerateLimit(60);
 
-    // Основной пол
     mPlatforms.emplace_back(sf::Vector2f{ 0.f, 550.f }, sf::Vector2f{ 800.f, 50.f }, PlatformType::Solid);
 
-    // СТЕНА (Торец для теста коллизий по бокам). Теперь ты не залетишь на нее просто так!
     mPlatforms.emplace_back(sf::Vector2f{ 560.f, 410.f }, sf::Vector2f{ 70.f, 160.f }, PlatformType::Solid);
 
-    // ПОЛУПЛАТФОРМА (Желтая). Снизу прыгаем сквозь нее, сверху — стоим.
     mPlatforms.emplace_back(sf::Vector2f{ 250.f, 300.f }, sf::Vector2f{ 200.f, 20.f }, PlatformType::OneWay);
 
     mPlayer.setPlatforms(mPlatforms);
@@ -72,7 +69,6 @@ void Game::processEvents() {
 
 // обновление логики
 void Game::update(sf::Time deltaTime) {
-    // 3. Вызываем чистый update без лишних параметров!
     mPlayer.update(deltaTime);
 }
 
@@ -80,7 +76,6 @@ void Game::update(sf::Time deltaTime) {
 void Game::render() {
     GameWindow.clear(sf::Color(40, 40, 40));
 
-    // Отрисовываем все платформы из вектора
     for (const auto& platform : mPlatforms) {
         platform.draw(GameWindow);
     }

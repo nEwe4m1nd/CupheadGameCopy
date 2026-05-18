@@ -1,7 +1,6 @@
 #pragma once
 #include "include.hpp"
 
-// Новое: типы платформ
 enum class PlatformType {
     Solid,  // стена
     OneWay // полустена
