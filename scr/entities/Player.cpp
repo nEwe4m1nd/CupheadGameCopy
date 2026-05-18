@@ -61,6 +61,10 @@ void Player::update(sf::Time deltaTime) {
 
     if (mPlatforms != nullptr) {
         for (const auto& platform : *mPlatforms) {
+            if (platform.getType() == PlatformType::OneWay) {
+                continue;
+            }
+
             auto intersection = mSprite.getGlobalBounds().findIntersection(platform.getBounds());
             if (intersection.has_value()) {
                 
@@ -85,14 +89,25 @@ void Player::update(sf::Time deltaTime) {
             auto intersection = mSprite.getGlobalBounds().findIntersection(platform.getBounds());
             if (intersection.has_value()) {
 
+                if (platform.getType() == PlatformType::OneWay) {
+                    float playerBottom = mSprite.getGlobalBounds().position.y + mSprite.getGlobalBounds().size.y;
+                    float platformTop = platform.getBounds().position.y;
+
+                    if (mVelocityY > 0.f && (playerBottom - intersection->size.y <= platformTop + 5.f)) {
+                        mPosition.y -= intersection->size.y;
+                        mVelocityY = 0.f;
+                        touchedGroundThisFrame = true;
+                        mSprite.setPosition(mPosition);
+                    }
+                    continue;
+                }
+
                 if (mVelocityY > 0.f) {
-                    
                     mPosition.y -= intersection->size.y;
                     mVelocityY = 0.f;
                     touchedGroundThisFrame = true;
                 }
                 else if (mVelocityY < 0.f) {
-                    
                     mPosition.y += intersection->size.y;
                     mVelocityY = 0.f;
                 }
