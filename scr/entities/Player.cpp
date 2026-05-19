@@ -6,6 +6,10 @@ Player::Player()
     , mIsGrounded(false)
     , mPlatforms(nullptr)
     , mCanGhostJump(false)
+    , mLastLookDirection(1.f, 0.f)
+    , mCurrentWeapon(WeaponType::Peashooter)
+    , mCurrentSuper(SuperType::EnergyBeam)
+    , mSuperMeter(0.f)
 {
     sf::Image defaultImage({ 50u, 80u }, sf::Color::Cyan);
     if (mTexture.loadFromImage(defaultImage)) {
@@ -21,7 +25,6 @@ void Player::setPlatforms(const std::vector<Platform>& platforms) {
 void Player::update(sf::Time deltaTime) {
     float dt = deltaTime.asSeconds();
 
-    // ghost jump
     if (mIsGrounded) {
         mGhostJumpTimer = sf::Time::Zero;
         mCanGhostJump = true;
@@ -33,14 +36,10 @@ void Player::update(sf::Time deltaTime) {
         }
     }
 
-    // move input
+    // движение
     sf::Vector2f moveInput(0.f, 0.f);
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) {
-        moveInput.x -= mMovementSpeed;
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) {
-        moveInput.x += mMovementSpeed;
-    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) moveInput.x -= mMovementSpeed;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) moveInput.x += mMovementSpeed;
 
     // прыжок
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) {
@@ -51,58 +50,51 @@ void Player::update(sf::Time deltaTime) {
         }
     }
 
-    // применение гравитации
     if (!mIsGrounded) {
         mVelocityY += GRAVITY * dt;
     }
 
+    // расчет направления взгляда
+    sf::Vector2f aimDir(0.f, 0.f);
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))    aimDir.y -= 1.f;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))  aimDir.y += 1.f;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))  aimDir.x -= 1.f;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) aimDir.x += 1.f;
 
-    //коллизия
+    sf::Vector2f moveDir(0.f, 0.f);
+    if (moveInput.x > 0.f) moveDir.x = 1.f;
+    if (moveInput.x < 0.f) moveDir.x = -1.f;
+
+    if (aimDir == sf::Vector2f(0.f, 0.f)) aimDir = moveDir;
+
+    if (aimDir != sf::Vector2f(0.f, 0.f)) {
+        float length = std::sqrt(aimDir.x * aimDir.x + aimDir.y * aimDir.y);
+        mLastLookDirection = aimDir / length;
+    }
+
+    // коллизия X
     mPosition.x += moveInput.x * dt;
     mSprite.setPosition(mPosition);
 
     if (mPlatforms != nullptr) {
         for (const auto& platform : *mPlatforms) {
-            if (platform.getType() == PlatformType::OneWay) {
-                continue;
-            }
+            if (platform.getType() == PlatformType::OneWay) continue;
 
             auto intersection = mSprite.getGlobalBounds().findIntersection(platform.getBounds());
             if (intersection.has_value()) {
-                
-                if (mSprite.getGlobalBounds().position.x < platform.getBounds().position.x) {
-                    mPosition.x -= intersection->size.x;
-                }
-                else {
-                    mPosition.x += intersection->size.x;
-                }
+                if (mSprite.getGlobalBounds().position.x < platform.getBounds().position.x) mPosition.x -= intersection->size.x;
+                else mPosition.x += intersection->size.x;
                 mSprite.setPosition(mPosition);
             }
         }
     }
 
+    // стрельба
+    handleShooting(deltaTime);
 
-    //пули
-    mShootTimer += deltaTime;
-
-    //shooting
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F) && mShootTimer >= SHOOT_COOLDOWN) {
-        mBullets.emplace_back(mPosition + sf::Vector2f(50.f, 20.f), sf::Vector2f(800.f, 0.f));
-        mShootTimer = sf::Time::Zero;
-    }
-
-    for (auto& bullet : mBullets) {
-        bullet.update(deltaTime);
-    }
-
-    mBullets.erase(std::remove_if(mBullets.begin(), mBullets.end(),
-        [](const Bullet& b) { return !b.isActive(); }), mBullets.end());
- 
-
-    //движение
+    // коллизия Y
     mPosition.y += mVelocityY * dt;
     mSprite.setPosition(mPosition);
-
     bool touchedGroundThisFrame = false;
 
     if (mPlatforms != nullptr) {
@@ -115,8 +107,8 @@ void Player::update(sf::Time deltaTime) {
                     float platformTop = platform.getBounds().position.y;
 
                     if (mVelocityY >= 0.f && (playerBottom - intersection->size.y <= platformTop + 5.f)) {
-  
-                        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
+                        // спрыгивание
+                        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
                             mVelocityY = 100.f;
                             mIsGrounded = false;
                             continue;
@@ -145,6 +137,45 @@ void Player::update(sf::Time deltaTime) {
     }
 
     mIsGrounded = touchedGroundThisFrame;
+}
+
+void Player::handleShooting(sf::Time deltaTime) {
+    mShootTimer += deltaTime;
+
+    // обычная атака
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F) && mShootTimer >= SHOOT_COOLDOWN) {
+        sf::Vector2f spawnPos = mPosition + sf::Vector2f(25.f, 40.f);
+        spawnPos += mLastLookDirection * 30.f;
+
+        switch (mCurrentWeapon) {
+        case WeaponType::Peashooter:
+            mBullets.emplace_back(spawnPos, mLastLookDirection, 900.f);
+            break;
+        case WeaponType::Spread:
+            break;
+        case WeaponType::Chaser:
+            break;
+        }
+        mShootTimer = sf::Time::Zero;
+    }
+
+    // супер атака 
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::V) && mSuperMeter >= 5.f) {
+        switch (mCurrentSuper) {
+        case SuperType::EnergyBeam:
+            break;
+        case SuperType::Invincibility:
+            break;
+        }
+        mSuperMeter -= 5.f;
+    }
+
+    for (auto& bullet : mBullets) {
+        bullet.update(deltaTime);
+    }
+
+    mBullets.erase(std::remove_if(mBullets.begin(), mBullets.end(),
+        [](const Bullet& b) { return !b.isActive(); }), mBullets.end());
 }
 
 void Player::draw(sf::RenderTarget& target) const {

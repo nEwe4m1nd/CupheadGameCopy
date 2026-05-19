@@ -4,11 +4,12 @@
 class Bullet {
 private:
     sf::RectangleShape mShape;
-    sf::Vector2f mVelocity;
+    sf::Vector2f mDirection;
+    float mSpeed;
     bool mIsActive;
 
 public:
-    Bullet(sf::Vector2f position, sf::Vector2f velocity);
+    Bullet(sf::Vector2f position, sf::Vector2f direction, float speed = 900.f);
     void update(sf::Time deltaTime);
     void draw(sf::RenderTarget& target) const;
 
