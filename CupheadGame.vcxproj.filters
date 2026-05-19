@@ -43,6 +43,9 @@
     <Filter Include="Файлы заголовков\core">
       <UniqueIdentifier>{0d58ed32-94cf-4c09-8f12-ca8918ef4e30}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Файлы заголовков\core\entities">
+      <UniqueIdentifier>{e94498a5-86a3-43cd-80bf-0a06da8953c2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="scr\main.cpp">
@@ -50,6 +53,18 @@
     </ClCompile>
     <ClCompile Include="scr\core\Game.cpp">
       <Filter>Исходные файлы\src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="scr\entities\Player.cpp">
+      <Filter>Исходные файлы\src\entities</Filter>
+    </ClCompile>
+    <ClCompile Include="scr\core\Entity.cpp">
+      <Filter>Исходные файлы\src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="scr\core\Platform.cpp">
+      <Filter>Исходные файлы\src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="scr\entities\Bullet.cpp">
+      <Filter>Исходные файлы\src\entities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -68,6 +83,18 @@
     </ClInclude>
     <ClInclude Include="include\core\Game.hpp">
       <Filter>Файлы заголовков\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\core\Entity.hpp">
+      <Filter>Файлы заголовков\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\entities\Player.hpp">
+      <Filter>Файлы заголовков\core\entities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\core\Platform.hpp">
+      <Filter>Файлы заголовков\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\entities\Bullet.hpp">
+      <Filter>Файлы заголовков\core\entities</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
