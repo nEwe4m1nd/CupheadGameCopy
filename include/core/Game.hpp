@@ -10,10 +10,15 @@ private:
 	sf::Clock Timer;
 	sf::Time timeSinceLastUpdate;
 	sf::Time TimePerFrame;
+	sf::View mGameView;
 	std::vector<int> entityList;
 
 	Player mPlayer;
 	std::vector<Platform> mPlatforms;
+
+	// границы уровня
+	const float mLevelWidth = 3000.f;
+	const float mLevelHeight = 600.f;
 
 public:
 	Game();
