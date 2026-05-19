@@ -156,31 +156,63 @@ void Player::handleShooting(sf::Time deltaTime) {
         case WeaponType::Chaser:
             break;
         }
+
+        if (mSuperMeter < 5.f) {
+            mSuperMeter += 0.2f;
+        }
+
         mShootTimer = sf::Time::Zero;
     }
 
     // супер атака 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::V) && mSuperMeter >= 5.f) {
+        sf::Vector2f spawnPos = mPosition + sf::Vector2f(25.f, 40.f);
+        spawnPos += mLastLookDirection * 40.f;
+
         switch (mCurrentSuper) {
         case SuperType::EnergyBeam:
+            mSuperAttacks.emplace_back(spawnPos, mLastLookDirection);
             break;
         case SuperType::Invincibility:
             break;
         }
-        mSuperMeter -= 5.f;
+        mSuperMeter = 0.f;
     }
+
 
     for (auto& bullet : mBullets) {
         bullet.update(deltaTime);
+
+        // Проверка столкновения пули с платформами
+        if (mPlatforms != nullptr) {
+            for (const auto& platform : *mPlatforms) {
+                // Если пуля пересекается с платформой — уничтожаем её
+                if (bullet.getBounds().findIntersection(platform.getBounds()).has_value()) {
+                    bullet.destroy(); // Метод destroy() добавим в класс Bullet ниже
+                    break;
+                }
+            }
+        }
+    }
+
+    for (auto& super : mSuperAttacks) {
+        super.update(deltaTime);
     }
 
     mBullets.erase(std::remove_if(mBullets.begin(), mBullets.end(),
         [](const Bullet& b) { return !b.isActive(); }), mBullets.end());
+
+    mSuperAttacks.erase(std::remove_if(mSuperAttacks.begin(), mSuperAttacks.end(),
+        [](const SuperAttack& s) { return !s.isActive(); }), mSuperAttacks.end());
 }
 
 void Player::draw(sf::RenderTarget& target) const {
     target.draw(mSprite);
     for (const auto& bullet : mBullets) {
         bullet.draw(target);
+    }
+
+    for (const auto& super : mSuperAttacks) {
+        super.draw(target);
     }
 }

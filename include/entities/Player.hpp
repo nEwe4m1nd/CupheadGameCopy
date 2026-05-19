@@ -2,6 +2,7 @@
 #include "core/Entity.hpp"
 #include "core/Platform.hpp"
 #include "entities/Bullet.hpp"
+#include "entities/SuperAttack.hpp"
 #include <vector>
 
 enum class WeaponType { Peashooter, Spread, Chaser };
@@ -24,8 +25,9 @@ private:
 
     const std::vector<Platform>* mPlatforms;
 
-    //players bullet
+    //players bullet & super_attack
     std::vector<Bullet> mBullets;
+    std::vector<SuperAttack> mSuperAttacks;
     sf::Time mShootTimer;
     const sf::Time SHOOT_COOLDOWN = sf::seconds(0.15f);
 
