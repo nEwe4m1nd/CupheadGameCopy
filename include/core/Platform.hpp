@@ -3,19 +3,19 @@
 
 enum class PlatformType {
     Solid,  // стена
-    OneWay // полустена
+    OneWay, // полустена
+    Death  // шипы
 };
 
 class Platform {
 private:
     sf::RectangleShape mShape;
-    PlatformType mType; // тип
+    PlatformType mType;
 
 public:
-    Platform(sf::Vector2f position, sf::Vector2f size, PlatformType type = PlatformType::Solid);
+    Platform(sf::Vector2f position, sf::Vector2f size, PlatformType type);
 
-public:
-    void draw(sf::RenderTarget& target) const;
     sf::FloatRect getBounds() const;
-    PlatformType getType() const;  
+    PlatformType getType() const;
+    void draw(sf::RenderTarget& target) const;
 };

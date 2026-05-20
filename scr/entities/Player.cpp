@@ -57,31 +57,6 @@ void Player::update(sf::Time deltaTime) {
     }
 
 
-    //коллизия
-    mPosition.x += moveInput.x * dt;
-    mSprite.setPosition(mPosition);
-
-    if (mPlatforms != nullptr) {
-        for (const auto& platform : *mPlatforms) {
-            if (platform.getType() == PlatformType::OneWay) {
-                continue;
-            }
-
-            auto intersection = mSprite.getGlobalBounds().findIntersection(platform.getBounds());
-            if (intersection.has_value()) {
-                
-                if (mSprite.getGlobalBounds().position.x < platform.getBounds().position.x) {
-                    mPosition.x -= intersection->size.x;
-                }
-                else {
-                    mPosition.x += intersection->size.x;
-                }
-                mSprite.setPosition(mPosition);
-            }
-        }
-    }
-
-
     //пули
     mShootTimer += deltaTime;
 
@@ -99,7 +74,38 @@ void Player::update(sf::Time deltaTime) {
         [](const Bullet& b) { return !b.isActive(); }), mBullets.end());
  
 
-    //движение
+    //коллизия X
+
+    mPosition.x += moveInput.x * dt;
+    mSprite.setPosition(mPosition);
+
+    if (mPlatforms != nullptr) {
+        for (const auto& platform : *mPlatforms) {
+            auto intersection = mSprite.getGlobalBounds().findIntersection(platform.getBounds());
+
+            if (intersection.has_value()) {
+                // Если коснулись шипов с любой стороны - смерть
+                if (platform.getType() == PlatformType::Death) {
+                    mPosition = { 200.f, 100.f };
+                    mVelocityY = 0.f;
+                    mSprite.setPosition(mPosition);
+                    continue;
+                }
+
+                if (platform.getType() == PlatformType::OneWay) continue;
+
+                if (mPosition.x < platform.getBounds().position.x) {
+                    mPosition.x -= intersection->size.x;
+                }
+                else {
+                    mPosition.x += intersection->size.x;
+                }
+                mSprite.setPosition(mPosition);
+            }
+        }
+    }
+
+    //коллизия Y
     mPosition.y += mVelocityY * dt;
     mSprite.setPosition(mPosition);
 
@@ -107,17 +113,25 @@ void Player::update(sf::Time deltaTime) {
 
     if (mPlatforms != nullptr) {
         for (const auto& platform : *mPlatforms) {
-            auto intersection = mSprite.getGlobalBounds().findIntersection(platform.getBounds());
+            sf::FloatRect playerBounds = mSprite.getGlobalBounds();
+            sf::FloatRect platformBounds = platform.getBounds();
+            auto intersection = playerBounds.findIntersection(platformBounds);
+
             if (intersection.has_value()) {
+                if (platform.getType() == PlatformType::Death) {
+                    mPosition = { 200.f, 100.f };
+                    mVelocityY = 0.f;
+                    mSprite.setPosition(mPosition);
+                    break;
+                }
 
                 if (platform.getType() == PlatformType::OneWay) {
-                    float playerBottom = mSprite.getGlobalBounds().position.y + mSprite.getGlobalBounds().size.y;
-                    float platformTop = platform.getBounds().position.y;
+                    float playerBottom = playerBounds.position.y + playerBounds.size.y;
+                    float platformTop = platformBounds.position.y;
 
-                    if (mVelocityY >= 0.f && (playerBottom - intersection->size.y <= platformTop + 5.f)) {
-  
+                    if (mVelocityY >= 0.f && (playerBottom - intersection->size.y <= platformTop + 8.f)) {
                         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
-                            mVelocityY = 100.f;
+                            mVelocityY = 200.f;
                             mIsGrounded = false;
                             continue;
                         }
@@ -130,14 +144,24 @@ void Player::update(sf::Time deltaTime) {
                     continue;
                 }
 
-                if (mVelocityY > 0.f) {
-                    mPosition.y -= intersection->size.y;
-                    mVelocityY = 0.f;
-                    touchedGroundThisFrame = true;
+                if (intersection->size.x < intersection->size.y) {
+                    if (mPosition.x < platformBounds.position.x) {
+                        mPosition.x -= intersection->size.x;
+                    }
+                    else {
+                        mPosition.x += intersection->size.x;
+                    }
                 }
-                else if (mVelocityY < 0.f) {
-                    mPosition.y += intersection->size.y;
-                    mVelocityY = 0.f;
+                else {
+                    if (mVelocityY > 0.f) {
+                        mPosition.y -= intersection->size.y;
+                        mVelocityY = 0.f;
+                        touchedGroundThisFrame = true;
+                    }
+                    else if (mVelocityY < 0.f) {
+                        mPosition.y += intersection->size.y;
+                        mVelocityY = 0.f;
+                    }
                 }
                 mSprite.setPosition(mPosition);
             }

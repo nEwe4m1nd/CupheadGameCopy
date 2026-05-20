@@ -52,39 +52,39 @@ void Game::loadLevel(const std::string& filename) {
         std::cout << "DEBUG: loading test level\n";
         
         //заглушка
-        mPlatforms.emplace_back(sf::Vector2f{ 0.f, 550.f }, sf::Vector2f{ 3000.f, 50.f });
+        mPlatforms.emplace_back(sf::Vector2f{ 0.f, 550.f }, sf::Vector2f{ 3000.f, 50.f }, PlatformType::Solid);
         mLevelLimits = { 3000.f, 600.f };
         return;
     }
 
+    mPlatforms.clear();
     std::string line;
     float maxW = 800.f;
     float maxH = 600.f;
-    int platformCount = 0;
 
     while (std::getline(file, line)) {
         if (line.empty() || line[0] == '#') continue;
 
         std::stringstream ss(line);
-        float x, y, width, height;
+        float x, y, w, h;
+        std::string typeStr;
 
-        if (ss >> x >> y >> width >> height) {
-            mPlatforms.emplace_back(sf::Vector2f{ x, y }, sf::Vector2f{ width, height });
-            platformCount++;
+        // Читаем 4 числа и строку-тип
+        if (ss >> x >> y >> w >> h >> typeStr) {
+            PlatformType type = PlatformType::Solid; // По умолчанию
 
-            if (x + width > maxW)  maxW = x + width;
-            if (y + height > maxH) maxH = y + height;
-        }
-        else {
-            std::cout << "DEBUG: error in reading line " << line << "\n";
+            if (typeStr == "OneWay") type = PlatformType::OneWay;
+            else if (typeStr == "Death")  type = PlatformType::Death;
+            else if (typeStr == "Solid")  type = PlatformType::Solid;
+
+            mPlatforms.emplace_back(sf::Vector2f{ x, y }, sf::Vector2f{ w, h }, type);
+
+            if (x + w > maxW) maxW = x + w;
+            if (y + h > maxH) maxH = y + h;
         }
     }
-
     mLevelLimits = { maxW, maxH };
     file.close();
-
-    std::cout << "DEBUG: LEVEL LOADED WITHOUT ANY PROBLEM\n";
-    std::cout << "DEBUG: platform found" << platformCount << "\n";
     std::cout << "DEBUG: camera limits X=" << maxW << " Y=" << maxH << "\n";
 }
 
