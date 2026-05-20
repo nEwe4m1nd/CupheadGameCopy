@@ -2,36 +2,43 @@
 #include "entities/Player.hpp"
 #include "core/Platform.hpp"
 #include <vector>
+#include <string>
 
 class Game {
 private:
-	sf::Vector2u WindowResolution;
-	sf::RenderWindow GameWindow;
-	sf::Clock Timer;
-	sf::Time timeSinceLastUpdate;
-	sf::Time TimePerFrame;
-	sf::View mGameView;
-	std::vector<int> entityList;
+    sf::Vector2u WindowResolution;
+    sf::RenderWindow GameWindow;
+    sf::Clock Timer;
+    sf::Time timeSinceLastUpdate;
+    sf::Time TimePerFrame;
+    std::vector<int> entityList;
 
-	Player mPlayer;
-	std::vector<Platform> mPlatforms;
+    Player mPlayer;
+    std::vector<Platform> mPlatforms;
 
-	// границы уровня
+    sf::View mGameView;
+    sf::Vector2f mLevelLimits;
+
+	// ГЈГ°Г Г­ГЁГ¶Г» ГіГ°Г®ГўГ­Гї
 	const float mLevelWidth = 3000.f;
 	const float mLevelHeight = 600.f;
 
 public:
-	Game();
-	Game(sf::Vector2u WindowResolution);
-	Game(const Game& other) = delete; //     сфига-то нельзя, в SFML нет конструкторов копирования Time и Clock
-	~Game();
+    Game();
+    Game(sf::Vector2u WindowResolution);
+    Game(const Game& other) = delete; //     Г±ГґГЁГЈГ -ГІГ® Г­ГҐГ«ГјГ§Гї, Гў SFML Г­ГҐГІ ГЄГ®Г­Г±ГІГ°ГіГЄГІГ®Г°Г®Гў ГЄГ®ГЇГЁГ°Г®ГўГ Г­ГЁГї Time ГЁ Clock
+    ~Game();
 
 public:
-	Game& operator=(const Game& other) = delete;
-	void run();
+    Game& operator=(const Game& other) = delete;
+    void run();
 
 private:
-	void processEvents();
-	void update(sf::Time deltaTime);
-	void render();
+    void processEvents();
+    void update(sf::Time deltaTime);
+    void render();
+
+private:
+    void loadLevel(const std::string& filename);
+    void updateCamera(sf::Time deltaTime);
 };

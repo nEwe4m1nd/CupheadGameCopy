@@ -63,6 +63,9 @@
     <ClCompile Include="scr\core\Platform.cpp">
       <Filter>Исходные файлы\src\core</Filter>
     </ClCompile>
+    <ClCompile Include="scr\entities\Bullet.cpp">
+      <Filter>Исходные файлы\src\entities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="LICENSE.txt">
@@ -89,6 +92,9 @@
     </ClInclude>
     <ClInclude Include="include\core\Platform.hpp">
       <Filter>Файлы заголовков\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\entities\Bullet.hpp">
+      <Filter>Файлы заголовков\core\entities</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
