@@ -35,11 +35,43 @@ void Player::update(sf::Time deltaTime) {
 
     // move input
     sf::Vector2f moveInput(0.f, 0.f);
+
+    bool isLockPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift);
+
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) {
-        moveInput.x -= mMovementSpeed;
+        if (!isLockPressed) {
+            moveInput.x -= mMovementSpeed;
+        }
+        mLastLookDirection = { -1.f, 0.f };
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) {
-        moveInput.x += mMovementSpeed;
+        if (!isLockPressed) {
+            moveInput.x += mMovementSpeed;
+        }
+        mLastLookDirection = { 1.f, 0.f };
+    }
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)) {
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
+            mLastLookDirection = { -0.7071f, -0.7071f };
+        }
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
+            mLastLookDirection = { 0.7071f, -0.7071f };
+        }
+        else {
+            mLastLookDirection = { 0.f, -1.f };
+        }
+    }
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
+            mLastLookDirection = { -0.7071f, 0.7071f };
+        }
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
+            mLastLookDirection = { 0.7071f, 0.7071f };
+        }
+        else {
+            mLastLookDirection = { 0.f, 1.f };
+        }
     }
 
     // прыжок
@@ -57,21 +89,8 @@ void Player::update(sf::Time deltaTime) {
     }
 
 
-    //пули
-    mShootTimer += deltaTime;
-
     //shooting
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F) && mShootTimer >= SHOOT_COOLDOWN) {
-        mBullets.emplace_back(mPosition + sf::Vector2f(50.f, 20.f), sf::Vector2f(800.f, 0.f));
-        mShootTimer = sf::Time::Zero;
-    }
-
-    for (auto& bullet : mBullets) {
-        bullet.update(deltaTime);
-    }
-
-    mBullets.erase(std::remove_if(mBullets.begin(), mBullets.end(),
-        [](const Bullet& b) { return !b.isActive(); }), mBullets.end());
+    handleShooting(deltaTime);
  
 
     //коллизия X
@@ -241,5 +260,8 @@ void Player::draw(sf::RenderTarget& target) const {
     target.draw(mSprite);
     for (const auto& bullet : mBullets) {
         bullet.draw(target);
+    }
+    for (const auto& super : mSuperAttacks) {
+        super.draw(target);
     }
 }
