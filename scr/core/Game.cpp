@@ -51,7 +51,7 @@ void Game::loadLevel(const std::string& filename) {
         std::cout << "DEBUG: file '" << filename << "' not found!\n";
         std::cout << "DEBUG: loading test level\n";
         
-        //заглушка
+        //Г§Г ГЈГ«ГіГёГЄГ 
         mPlatforms.emplace_back(sf::Vector2f{ 0.f, 550.f }, sf::Vector2f{ 3000.f, 50.f }, PlatformType::Solid);
         mLevelLimits = { 3000.f, 600.f };
         return;
@@ -69,9 +69,9 @@ void Game::loadLevel(const std::string& filename) {
         float x, y, w, h;
         std::string typeStr;
 
-        // Читаем 4 числа и строку-тип
+        // Г—ГЁГІГ ГҐГ¬ 4 Г·ГЁГ±Г«Г  ГЁ Г±ГІГ°Г®ГЄГі-ГІГЁГЇ
         if (ss >> x >> y >> w >> h >> typeStr) {
-            PlatformType type = PlatformType::Solid; // По умолчанию
+            PlatformType type = PlatformType::Solid; // ГЏГ® ГіГ¬Г®Г«Г·Г Г­ГЁГѕ
 
             if (typeStr == "OneWay") type = PlatformType::OneWay;
             else if (typeStr == "Death")  type = PlatformType::Death;
@@ -113,7 +113,7 @@ void Game::updateCamera(sf::Time deltaTime) {
     mGameView.setCenter(targetCenter);
 }
 
-// главный игровой цикл
+// ГЈГ«Г ГўГ­Г»Г© ГЁГЈГ°Г®ГўГ®Г© Г¶ГЁГЄГ«
 void Game::run() {
     while (GameWindow.isOpen()) {
         sf::Time deltaTime = Timer.restart();
@@ -125,12 +125,12 @@ void Game::run() {
             update(TimePerFrame);
         }
 
-        // анортизация
+        // Г Г­Г®Г°ГІГЁГ§Г Г¶ГЁГї
         render();
     }
 }
 
-// ввод
+// ГўГўГ®Г¤
 void Game::processEvents() {
     while (const std::optional<sf::Event> event = GameWindow.pollEvent()) {
         if (event->is<sf::Event::Closed>()) {
@@ -139,18 +139,18 @@ void Game::processEvents() {
     }
 }
 
-// обновление логики
+// Г®ГЎГ­Г®ГўГ«ГҐГ­ГЁГҐ Г«Г®ГЈГЁГЄГЁ
 void Game::update(sf::Time deltaTime) {
     mPlayer.update(deltaTime);
     updateCamera(deltaTime);
 }
 
-// отрисовка
+// Г®ГІГ°ГЁГ±Г®ГўГЄГ 
 void Game::render() {
     GameWindow.clear(sf::Color(40, 40, 40));
     GameWindow.setView(mGameView);
 
-    // отрисовка игровых объектов
+    // Г®ГІГ°ГЁГ±Г®ГўГЄГ  ГЁГЈГ°Г®ГўГ»Гµ Г®ГЎГєГҐГЄГІГ®Гў
     for (const auto& platform : mPlatforms) {
         platform.draw(GameWindow);
     }
