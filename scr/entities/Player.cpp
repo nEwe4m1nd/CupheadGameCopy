@@ -147,8 +147,7 @@ void Player::update(sf::Time deltaTime) {
     mIsGrounded = touchedGroundThisFrame;
 }
 
-<<<<<<< Updated upstream
-=======
+
 void Player::handleShooting(sf::Time deltaTime) {
     mShootTimer += deltaTime;
 
@@ -214,7 +213,6 @@ void Player::handleShooting(sf::Time deltaTime) {
         [](const SuperAttack& s) { return !s.isActive(); }), mSuperAttacks.end());
 }
 
->>>>>>> Stashed changes
 void Player::draw(sf::RenderTarget& target) const {
     target.draw(mSprite);
     for (const auto& bullet : mBullets) {
