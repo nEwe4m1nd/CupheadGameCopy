@@ -23,6 +23,9 @@
     <ClCompile Include="scr\core\Game.cpp" />
     <ClCompile Include="scr\core\Platform.cpp" />
     <ClCompile Include="scr\entities\Bullet.cpp" />
+    <ClCompile Include="scr\entities\Enemy.cpp" />
+    <ClCompile Include="scr\entities\EnemyProjectile.cpp" />
+    <ClCompile Include="scr\entities\Minions.cpp" />
     <ClCompile Include="scr\entities\Player.cpp" />
     <ClCompile Include="scr\entities\SuperAttack.cpp" />
     <ClCompile Include="scr\main.cpp" />
@@ -39,6 +42,9 @@
     <ClInclude Include="include\core\Game.hpp" />
     <ClInclude Include="include\core\Platform.hpp" />
     <ClInclude Include="include\entities\Bullet.hpp" />
+    <ClInclude Include="include\entities\Enemy.hpp" />
+    <ClInclude Include="include\entities\EnemyProjectile.hpp" />
+    <ClInclude Include="include\entities\Minions.hpp" />
     <ClInclude Include="include\entities\Player.hpp" />
     <ClInclude Include="include\entities\SuperAttack.hpp" />
     <ClInclude Include="include\include.hpp" />
