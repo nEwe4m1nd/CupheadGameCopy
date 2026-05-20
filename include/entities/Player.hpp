@@ -50,6 +50,12 @@ private:
     float mDashDirection;
     bool mCanDash;
 
+    int mHp;
+    int mMaxHp;
+    bool mIsInvincible; // неу€звимость после получени€ урона
+    sf::Time mInvincibilityTimer;
+    const sf::Time INVINCIBILITY_DURATION = sf::seconds(1.5f);
+
 public:
     Player();
 
@@ -61,6 +67,15 @@ public:
     void setPlatforms(const std::vector<Platform>& platforms);
     void setWeapon(WeaponType type) { mCurrentWeapon = type; }
     void setSuper(SuperType type) { mCurrentSuper = type; }
+
+public:
+    void takeDamage(int amount);
+    int getHp() const { return mHp; }
+    bool isInvincible() const { return mIsInvincible; }
+
+    std::vector<Bullet>& getBullets() { return mBullets; }
+    sf::FloatRect getBounds() const { return mSprite.getGlobalBounds(); }
+    std::vector<SuperAttack>& getSuperAttacks() { return mSuperAttacks; }
 
 private:
     void handleShooting(sf::Time deltaTime);

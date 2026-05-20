@@ -1,3 +1,4 @@
+#include "include.hpp"
 #include "core/Game.hpp"
 #include <iostream>
 #include <optional>
@@ -15,25 +16,23 @@ Game::Game()
     , timeSinceLastUpdate(sf::Time::Zero)
     , TimePerFrame(sf::seconds(1.f / 60.f))
     , mLevelLimits(0.f, 0.f)
+    , mSpawnTimer(sf::Time::Zero)
 {
     mGameView.setSize({ 800.f, 600.f });
-
     loadLevel("include/levels/testLevel.txt");
-
     mPlayer.setPlatforms(mPlatforms);
 }
 
 
 Game::Game(sf::Vector2u windowResolution)
-    : WindowResolution(windowResolution)
-    , GameWindow(sf::VideoMode(WindowResolution), "Cuphead Clone Project")
+    : GameWindow(sf::VideoMode(windowResolution), "Cuphead Clone Project") // Передаем аргумент напрямую
     , Timer()
     , timeSinceLastUpdate(sf::Time::Zero)
     , TimePerFrame(sf::seconds(1.f / 60.f))
     , mLevelLimits(0.f, 0.f)
 {
     GameWindow.setFramerateLimit(60);
-    mGameView.setSize(static_cast<sf::Vector2f>(WindowResolution));
+    mGameView.setSize(static_cast<sf::Vector2f>(windowResolution));
 
     loadLevel("include/levels/testLevel.txt");
 
@@ -69,9 +68,8 @@ void Game::loadLevel(const std::string& filename) {
         float x, y, w, h;
         std::string typeStr;
 
-        // Читаем 4 числа и строку-тип
         if (ss >> x >> y >> w >> h >> typeStr) {
-            PlatformType type = PlatformType::Solid; // По умолчанию
+            PlatformType type = PlatformType::Solid;
 
             if (typeStr == "OneWay") type = PlatformType::OneWay;
             else if (typeStr == "Death")  type = PlatformType::Death;
@@ -142,19 +140,96 @@ void Game::processEvents() {
 // обновление логики
 void Game::update(sf::Time deltaTime) {
     mPlayer.update(deltaTime);
+
+    mSpawnTimer += deltaTime;
+    if (mSpawnTimer >= SPAWN_COOLDOWN) {
+        spawnRandomMinion();
+        mSpawnTimer = sf::Time::Zero;
+    }
+
+    for (auto& enemy : mEnemies) {
+        enemy->update(deltaTime, mPlayer.getPosition());
+    }
+
+    handleCollisions();
+
+    mEnemies.erase(std::remove_if(mEnemies.begin(), mEnemies.end(),
+        [](const std::unique_ptr<Enemy>& e) { return !e->isActive(); }), mEnemies.end());
+
     updateCamera(deltaTime);
+}
+
+void Game::spawnRandomMinion() {
+    int type = rand() % 3;
+
+    if (type == 0) {
+        mEnemies.push_back(std::make_unique<HomingChomper>(sf::Vector2f(1800.f, 200.f)));
+    }
+    else if (type == 1) {
+        mEnemies.push_back(std::make_unique<FloorChomper>(sf::Vector2f(2000.f, 570.f), -1.f));
+    }
+    else if (type == 2) {
+        mEnemies.push_back(std::make_unique<FlyingChomper>(sf::Vector2f(1600.f, 300.f)));
+    }
+}
+
+void Game::handleCollisions() {
+    auto& bullets = mPlayer.getBullets();
+    auto& supers = mPlayer.getSuperAttacks();
+    sf::FloatRect playerBounds = mPlayer.getBounds();
+
+    for (auto& enemy : mEnemies) {
+        if (!enemy->isActive()) continue;
+
+        sf::FloatRect enemyBounds = enemy->getBounds();
+
+        // пули игрока -> враг
+        for (auto& bullet : bullets) {
+            if (bullet.isActive() && bullet.getBounds().findIntersection(enemyBounds).has_value()) {
+                enemy->takeDamage(bullet.getDamage());
+                bullet.destroy();
+            }
+        }
+
+        // супер-атака игрока -> враг
+        for (auto& super : supers) {
+            if (super.isActive() && super.getBounds().findIntersection(enemyBounds).has_value()) {
+                enemy->takeDamage(super.getDamage());
+            }
+        }
+
+        /// тело врага -> игрок
+        if (playerBounds.findIntersection(enemyBounds).has_value()) {
+            mPlayer.takeDamage(1);
+            enemy->destroy();
+        }
+
+        FlyingChomper* flyer = dynamic_cast<FlyingChomper*>(enemy.get());
+        if (flyer != nullptr) {
+            auto& enemyProjectiles = flyer->getProjectiles();
+            for (auto& proj : enemyProjectiles) {
+                if (proj.isActive() && proj.getBounds().findIntersection(playerBounds).has_value()) {
+                    mPlayer.takeDamage(static_cast<int>(proj.getDamage()));
+                    proj.destroy();
+                }
+            }
+        }
+    }
 }
 
 // отрисовка
 void Game::render() {
-    GameWindow.clear(sf::Color(40, 40, 40));
+    GameWindow.clear(sf::Color::Black);
     GameWindow.setView(mGameView);
 
-    // отрисовка игровых объектов
     for (const auto& platform : mPlatforms) {
         platform.draw(GameWindow);
     }
-    mPlayer.draw(GameWindow);
 
+    for (const auto& enemy : mEnemies) {
+        enemy->draw(GameWindow);
+    }
+
+    mPlayer.draw(GameWindow);
     GameWindow.display();
 }

@@ -1,7 +1,7 @@
 #include "entities/Bullet.hpp"
 
-Bullet::Bullet(sf::Vector2f position, sf::Vector2f direction, float speed)
-    : mDirection(direction), mSpeed(speed), mIsActive(true)
+Bullet::Bullet(sf::Vector2f position, sf::Vector2f direction, float speed, float damage)
+    : mDirection(direction), mSpeed(speed), mDamage(damage), mIsActive(true)
 {
     mShape.setSize({ 12.f, 6.f });
     mShape.setFillColor(sf::Color::Yellow);

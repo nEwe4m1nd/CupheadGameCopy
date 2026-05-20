@@ -1,6 +1,7 @@
 #include "entities/Minions.hpp"
 #include <cmath>
 
+// HomingChomper
 HomingChomper::HomingChomper(sf::Vector2f position)
     : Enemy(position, 10.f, 1.f)
     , mSpeed(250.f)
@@ -9,6 +10,8 @@ HomingChomper::HomingChomper(sf::Vector2f position)
     mTexture.loadFromImage(img);
     mSprite.setTexture(mTexture, true);
 }
+
+void HomingChomper::update(sf::Time deltaTime) {}
 
 void HomingChomper::update(sf::Time deltaTime, sf::Vector2f playerPos) {
     sf::Vector2f direction = playerPos - mPosition;
@@ -23,7 +26,12 @@ void HomingChomper::update(sf::Time deltaTime, sf::Vector2f playerPos) {
     mSprite.setPosition(mPosition);
 }
 
+void HomingChomper::draw(sf::RenderTarget& target) const {
+    target.draw(mSprite);
+}
 
+
+// FloorChomper
 FloorChomper::FloorChomper(sf::Vector2f position, float startDirection)
     : Enemy(position, 15.f, 1.f)
     , mSpeed(150.f)
@@ -34,12 +42,19 @@ FloorChomper::FloorChomper(sf::Vector2f position, float startDirection)
     mSprite.setTexture(mTexture, true);
 }
 
+void FloorChomper::update(sf::Time deltaTime) {}
+
 void FloorChomper::update(sf::Time deltaTime, sf::Vector2f playerPos) {
     mPosition.x += mMoveDirection * mSpeed * deltaTime.asSeconds();
     mSprite.setPosition(mPosition);
 }
 
+void FloorChomper::draw(sf::RenderTarget& target) const {
+    target.draw(mSprite);
+}
 
+
+// FlyingChomper
 FlyingChomper::FlyingChomper(sf::Vector2f position)
     : Enemy(position, 20.f, 1.f)
     , mHoverTimer(0.f)
@@ -51,6 +66,8 @@ FlyingChomper::FlyingChomper(sf::Vector2f position)
     mSprite.setTexture(mTexture, true);
     mShootTimer = sf::seconds(1.5f);
 }
+
+void FlyingChomper::update(sf::Time deltaTime) {}
 
 void FlyingChomper::update(sf::Time deltaTime, sf::Vector2f playerPos) {
     mHoverTimer += deltaTime.asSeconds();

@@ -9,6 +9,10 @@ private:
 
 public:
     HomingChomper(sf::Vector2f position);
+
+    void update(sf::Time deltaTime) override;
+    void draw(sf::RenderTarget& target) const override;
+
     void update(sf::Time deltaTime, sf::Vector2f playerPos) override;
 };
 
@@ -20,6 +24,10 @@ private:
 
 public:
     FloorChomper(sf::Vector2f position, float startDirection);
+
+    void update(sf::Time deltaTime) override;
+    void draw(sf::RenderTarget& target) const override;
+
     void update(sf::Time deltaTime, sf::Vector2f playerPos) override;
 };
 
@@ -35,8 +43,11 @@ private:
 
 public:
     FlyingChomper(sf::Vector2f position);
-    void update(sf::Time deltaTime, sf::Vector2f playerPos) override;
+
+    void update(sf::Time deltaTime) override;
     void draw(sf::RenderTarget& target) const override;
+
+    void update(sf::Time deltaTime, sf::Vector2f playerPos) override;
 
     std::vector<EnemyProjectile>& getProjectiles();
 };

@@ -1,23 +1,28 @@
 #pragma once
-#include "entities/Player.hpp"
+#include "include.hpp"
 #include "core/Platform.hpp"
+#include "entities/Player.hpp"
+#include "entities/Enemy.hpp"
+#include "entities/Minions.hpp"
+#include <ctime>
 #include <vector>
-#include <string>
+#include <memory>
 
 class Game {
 private:
-    sf::Vector2u WindowResolution;
     sf::RenderWindow GameWindow;
+    sf::View mGameView;
     sf::Clock Timer;
     sf::Time timeSinceLastUpdate;
-    sf::Time TimePerFrame;
-    std::vector<int> entityList;
+    const sf::Time TimePerFrame;
 
-    Player mPlayer;
-    std::vector<Platform> mPlatforms;
-
-    sf::View mGameView;
     sf::Vector2f mLevelLimits;
+    std::vector<Platform> mPlatforms;
+    Player mPlayer;
+
+    std::vector<std::unique_ptr<Enemy>> mEnemies;
+    sf::Time mSpawnTimer;
+    const sf::Time SPAWN_COOLDOWN = sf::seconds(4.0f);
 
 public:
     Game();
@@ -33,6 +38,8 @@ private:
     void processEvents();
     void update(sf::Time deltaTime);
     void render();
+    void spawnRandomMinion();
+    void handleCollisions();
 
 private:
     void loadLevel(const std::string& filename);
