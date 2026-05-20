@@ -10,11 +10,12 @@ enum class SuperType { EnergyBeam, Invincibility };
 
 class Player : public Entity {
 private:
+    //движение
     float mMovementSpeed;
     float mVelocityY;
     bool mIsGrounded;
 
-    // настройки баланса
+    //баланс
     const float GRAVITY = 1980.f;
     const float JUMP_FORCE = -750.f;
 
@@ -23,6 +24,7 @@ private:
     const sf::Time GhostJump_DURATION = sf::seconds(0.07f);
     bool mCanGhostJump;
 
+    //контейнер платформ
     const std::vector<Platform>* mPlatforms;
 
     //players bullet & super_attack
@@ -31,11 +33,22 @@ private:
     sf::Time mShootTimer;
     const sf::Time SHOOT_COOLDOWN = sf::seconds(0.15f);
 
+    //направление взгляда
     sf::Vector2f mLastLookDirection;
-
+    
+    //выбор оружия
     WeaponType mCurrentWeapon;
     SuperType mCurrentSuper;
     float mSuperMeter;
+
+    //деш
+    bool mTabPressedLastFrame;
+    bool mDashPressedLastFrame;
+    bool mIsDashing;
+    sf::Time mDashTimer;
+    const sf::Time DASH_DURATION = sf::seconds(0.15f);
+    float mDashDirection;
+    bool mCanDash;
 
 public:
     Player();
