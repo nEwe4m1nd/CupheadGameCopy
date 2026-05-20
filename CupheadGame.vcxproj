@@ -24,6 +24,7 @@
     <ClCompile Include="scr\core\Platform.cpp" />
     <ClCompile Include="scr\entities\Bullet.cpp" />
     <ClCompile Include="scr\entities\Player.cpp" />
+    <ClCompile Include="scr\entities\SuperAttack.cpp" />
     <ClCompile Include="scr\main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -39,6 +40,7 @@
     <ClInclude Include="include\core\Platform.hpp" />
     <ClInclude Include="include\entities\Bullet.hpp" />
     <ClInclude Include="include\entities\Player.hpp" />
+    <ClInclude Include="include\entities\SuperAttack.hpp" />
     <ClInclude Include="include\include.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -1,7 +1,6 @@
-#pragma once
 #include "include.hpp"
 
-class Bullet {
+class SuperAttack {
 private:
     sf::RectangleShape mShape;
     sf::Vector2f mDirection;
@@ -9,10 +8,7 @@ private:
     bool mIsActive;
 
 public:
-    Bullet(sf::Vector2f position, sf::Vector2f direction, float speed = 900.f);
-
-public:
-    void destroy() { mIsActive = false; }
+    SuperAttack(sf::Vector2f position, sf::Vector2f direction);
     void update(sf::Time deltaTime);
     void draw(sf::RenderTarget& target) const;
 
