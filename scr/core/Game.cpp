@@ -19,10 +19,9 @@ Game::Game()
     , mBackgroundSprite(mBackgroundTexture)
 {
     if (mBackgroundTexture.loadFromFile("assets/forest_bg.jpg")) {
-        mBackgroundTexture.setRepeated(true); // Если фон нужно затайлить
+        mBackgroundTexture.setRepeated(true);
         mBackgroundSprite.setTexture(mBackgroundTexture);
-        // Растягиваем фон на ширину уровня
-        mBackgroundSprite.setTextureRect(sf::IntRect({ 0, 0 }, { 3000, 1080 }));
+        mBackgroundSprite.setTextureRect(sf::IntRect({ 0, 0 }, { 800, 720 }));
     }
     mGameView.setSize({ 800.f, 600.f });
     loadLevel("include/levels/testLevel.txt");
@@ -41,10 +40,9 @@ Game::Game(sf::Vector2u windowResolution)
     , mBackgroundSprite(mBackgroundTexture)
 {
     if (mBackgroundTexture.loadFromFile("assets/forest_bg.png")) {
-        mBackgroundTexture.setRepeated(true); // Если фон нужно затайлить
+        mBackgroundTexture.setRepeated(true);
         mBackgroundSprite.setTexture(mBackgroundTexture);
-        // Растягиваем фон на ширину уровня
-        mBackgroundSprite.setTextureRect(sf::IntRect({ 0, 0 }, { 3000, 1080 }));
+        mBackgroundSprite.setTextureRect(sf::IntRect({ 0, 0 }, { 800, 720 }));
     }
     GameWindow.setFramerateLimit(60);
     mGameView.setSize(static_cast<sf::Vector2f>(windowResolution));
@@ -241,9 +239,8 @@ void Game::update(sf::Time deltaTime) {
         }
     }
 
-    // 2. Спавним миньонов ТОЛЬКО если это не битва с боссом
     if (!isBossFight) {
-        mSpawnTimer += deltaTime; // Время идет только когда нет босса
+        mSpawnTimer += deltaTime; 
         if (mSpawnTimer >= sf::seconds(4.0f)) {
             spawnRandomMinion();
             mSpawnTimer = sf::Time::Zero;
@@ -264,10 +261,9 @@ void Game::update(sf::Time deltaTime) {
 
 
 void Game::render() {
-    GameWindow.clear(sf::Color(40, 40, 40)); // Оставляем цвет для подстраховки
+    GameWindow.clear(sf::Color(40, 40, 40));
     GameWindow.setView(mGameView);
 
-    // Рисуем фон
     GameWindow.draw(mBackgroundSprite);
 
     for (const auto& platform : mPlatforms) {

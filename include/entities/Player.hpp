@@ -42,7 +42,6 @@ private:
     float mDashDirection;
     bool mCanDash;
 
-    // --- НОВОЕ: Здоровье и неуязвимость ---
     int mHp = 3;
     bool mIsInvincible = false;
     sf::Time mInvincibilityTimer = sf::Time::Zero;
@@ -57,7 +56,6 @@ public:
     void setWeapon(WeaponType type) { mCurrentWeapon = type; }
     void setSuper(SuperType type) { mCurrentSuper = type; }
 
-    // --- НОВОЕ: Геттеры для Game.cpp и получение урона ---
     std::vector<Bullet>& getBullets() { return mBullets; }
     std::vector<SuperAttack>& getSuperAttacks() { return mSuperAttacks; }
     sf::FloatRect getBounds() const { return mSprite.getGlobalBounds(); }

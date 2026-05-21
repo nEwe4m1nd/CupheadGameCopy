@@ -19,7 +19,7 @@ Platform::Platform(sf::Vector2f position, sf::Vector2f size, PlatformType type, 
     if (mType == PlatformType::OneWay) {
         if (mTexture.loadFromFile("assets/leaf.png")) {
             mShape.setTexture(&mTexture);
-            mShape.setFillColor(sf::Color::White); // Обязательно сбросить цвет, иначе он смешается с текстурой
+            mShape.setFillColor(sf::Color::White); 
         }
     }
     else if (mType == PlatformType::Solid) {
