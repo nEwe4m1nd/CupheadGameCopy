@@ -31,15 +31,15 @@ void Player::setPlatforms(const std::vector<Platform>& platforms) {
 void Player::update(sf::Time deltaTime) {
     float dt = deltaTime.asSeconds();
 
-    // 1. Возвращаем неуязвимость
+    // неуязвимость
     if (mIsInvincible) {
         mInvincibilityTimer += deltaTime;
-        if (mInvincibilityTimer >= sf::seconds(1.5f)) { // 1.5 секунды неуязвимости
+        if (mInvincibilityTimer >= sf::seconds(1.5f)) {
             mIsInvincible = false;
             mSprite.setColor(sf::Color::White);
         }
         else {
-            // Эффект мигания при получении урона
+
             if (static_cast<int>(mInvincibilityTimer.asMilliseconds() / 100) % 2 == 0) {
                 mSprite.setColor(sf::Color(255, 100, 100, 150));
             }
@@ -138,25 +138,26 @@ void Player::update(sf::Time deltaTime) {
         mVelocityY += GRAVITY * dt;
     }
 
-    // Если стоим на платформе, двигаемся вместе с ней
+
     if (mIsGrounded) {
         for (const auto& platform : *mPlatforms) {
-            // Проверяем, стоит ли игрок на этой конкретной платформе
             if (getBounds().findIntersection(platform.getBounds())) {
-                // Добавляем вектор движения платформы к позиции игрока
                 mPosition += platform.getVelocity() * deltaTime.asSeconds();
                 break;
             }
         }
     }
 
-    // коллизия X (Исправлено отскакивание)
+    // коллизия X
     mPosition.x += moveInput.x * dt;
     mSprite.setPosition(mPosition);
 
     if (mPlatforms != nullptr) {
         for (const auto& platform : *mPlatforms) {
-            auto intersection = mSprite.getGlobalBounds().findIntersection(platform.getBounds());
+            sf::FloatRect playerBounds = mSprite.getGlobalBounds();
+            sf::FloatRect platformBounds = platform.getBounds();
+            auto intersection = playerBounds.findIntersection(platformBounds);
+
             if (intersection.has_value()) {
                 if (platform.getType() == PlatformType::Death) {
                     takeDamage(1);
@@ -168,10 +169,17 @@ void Player::update(sf::Time deltaTime) {
                 }
                 if (platform.getType() == PlatformType::OneWay) continue;
 
-                // Проверяем, что это стена, а не пол
+
                 if (intersection->size.x < intersection->size.y) {
-                    if (mPosition.x < platform.getBounds().position.x) mPosition.x -= intersection->size.x;
-                    else mPosition.x += intersection->size.x;
+                    float playerCenterX = playerBounds.position.x + playerBounds.size.x / 2.f;
+                    float platformCenterX = platformBounds.position.x + platformBounds.size.x / 2.f;
+
+                    if (playerCenterX < platformCenterX) {
+                        mPosition.x -= intersection->size.x;
+                    }
+                    else {
+                        mPosition.x += intersection->size.x;
+                    }
                     mSprite.setPosition(mPosition);
                 }
             }
@@ -180,7 +188,6 @@ void Player::update(sf::Time deltaTime) {
 
     handleShooting(deltaTime);
 
-    // коллизия Y (Исправлено трение и стояние на платформах)
     mPosition.y += mVelocityY * dt;
     mSprite.setPosition(mPosition);
     bool touchedGroundThisFrame = false;
@@ -219,16 +226,18 @@ void Player::update(sf::Time deltaTime) {
                     continue;
                 }
 
-                // Обработка твердого пола
-                if (mVelocityY >= 0.f) {
+                float playerCenterY = playerBounds.position.y + playerBounds.size.y / 2.f;
+                float platformCenterY = platformBounds.position.y + platformBounds.size.y / 2.f;
+
+                if (playerCenterY < platformCenterY) {
                     mPosition.y -= intersection->size.y;
-                    mVelocityY = 0.f;
+                    if (mVelocityY > 0.f) mVelocityY = 0.f; // Сбрасываем скорость только если падали
                     touchedGroundThisFrame = true;
                     mPosition.x += platform.getVelocity().x * dt;
                 }
-                else if (mVelocityY < 0.f) {
+                else {
                     mPosition.y += intersection->size.y;
-                    mVelocityY = 0.f;
+                    if (mVelocityY < 0.f) mVelocityY = 0.f;
                 }
                 mSprite.setPosition(mPosition);
             }
