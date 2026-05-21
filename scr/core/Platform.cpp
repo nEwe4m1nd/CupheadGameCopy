@@ -52,7 +52,7 @@ void Platform::update(sf::Time deltaTime) {
 }
 
 sf::Vector2f Platform::getVelocity() const {
-    return mVelocity;
+    return mIsMoving ? sf::Vector2f(mSpeed * mDirection, 0.f) : sf::Vector2f(0.f, 0.f);
 }
 
 sf::FloatRect Platform::getBounds() const {

@@ -4,10 +4,8 @@
 #include <fstream>
 #include <sstream>
 
-
 const sf::Vector2u Resolution_HD(1280u, 720u);
 const sf::Vector2u Resolution_FHD(1920u, 1080u);
-
 
 Game::Game()
     : GameWindow(sf::VideoMode({ 800u, 600u }), "Cuphead Game")
@@ -15,48 +13,36 @@ Game::Game()
     , timeSinceLastUpdate(sf::Time::Zero)
     , TimePerFrame(sf::seconds(1.f / 60.f))
     , mLevelLimits(0.f, 0.f)
+    , mSpawnTimer(sf::Time::Zero)
 {
     mGameView.setSize({ 800.f, 600.f });
-
     loadLevel("include/levels/testLevel.txt");
-
     mPlayer.setPlatforms(mPlatforms);
+    srand(static_cast<unsigned>(time(nullptr)));
 }
 
-
 Game::Game(sf::Vector2u windowResolution)
-    : WindowResolution(windowResolution)
-    , GameWindow(sf::VideoMode(WindowResolution), "Cuphead Clone Project")
+    : GameWindow(sf::VideoMode(windowResolution), "Cuphead Clone Project")
     , Timer()
     , timeSinceLastUpdate(sf::Time::Zero)
     , TimePerFrame(sf::seconds(1.f / 60.f))
     , mLevelLimits(0.f, 0.f)
+    , mSpawnTimer(sf::Time::Zero)
 {
     GameWindow.setFramerateLimit(60);
-    mGameView.setSize(static_cast<sf::Vector2f>(WindowResolution));
-
+    mGameView.setSize(static_cast<sf::Vector2f>(windowResolution));
     loadLevel("include/levels/testLevel.txt");
-
     mPlayer.setPlatforms(mPlatforms);
+    srand(static_cast<unsigned>(time(nullptr)));
 }
 
-
-Game::~Game() {
-}
+Game::~Game() {}
 
 void Game::loadLevel(const std::string& filename) {
     std::ifstream file(filename);
 
     if (!file.is_open()) {
         std::cout << "DEBUG: file '" << filename << "' not found!\n";
-<<<<<<< Updated upstream
-        std::cout << "DEBUG: loading test level\n";
-        
-        //Ã§Ã Ã£Ã«Ã³Ã¸ÃªÃ 
-        mPlatforms.emplace_back(sf::Vector2f{ 0.f, 550.f }, sf::Vector2f{ 3000.f, 50.f }, PlatformType::Solid);
-        mLevelLimits = { 3000.f, 600.f };
-=======
->>>>>>> Stashed changes
         return;
     }
 
@@ -74,16 +60,9 @@ void Game::loadLevel(const std::string& filename) {
         std::string objectType;
         ss >> objectType;
 
-<<<<<<< Updated upstream
-        // Ã—Ã¨Ã²Ã Ã¥Ã¬ 4 Ã·Ã¨Ã±Ã«Ã  Ã¨ Ã±Ã²Ã°Ã®ÃªÃ³-Ã²Ã¨Ã¯
-        if (ss >> x >> y >> w >> h >> typeStr) {
-            PlatformType type = PlatformType::Solid; // ÃÃ® Ã³Ã¬Ã®Ã«Ã·Ã Ã­Ã¨Ã¾
-=======
-        // ÏÀÐÑÈÍÃ ÑÒÀÒÈ×ÍÎÉ ÏËÀÒÔÎÐÌÛ
         if (objectType == "Platform") {
             float x, y, w, h;
             std::string typeStr;
->>>>>>> Stashed changes
 
             if (ss >> x >> y >> w >> h >> typeStr) {
                 PlatformType type = PlatformType::Solid;
@@ -91,12 +70,10 @@ void Game::loadLevel(const std::string& filename) {
                 else if (typeStr == "Death")  type = PlatformType::Death;
 
                 mPlatforms.emplace_back(sf::Vector2f{ x, y }, sf::Vector2f{ w, h }, type);
-
                 if (x + w > maxW) maxW = x + w;
                 if (y + h > maxH) maxH = y + h;
             }
         }
-        //  ÏÀÐÑÈÍÃ ÄÂÈÆÓÙÅÉÑß ÏËÀÒÔÎÐÌÛ
         else if (objectType == "Moving") {
             float x, y, w, h, moveX, moveY, speed;
             std::string typeStr;
@@ -107,12 +84,10 @@ void Game::loadLevel(const std::string& filename) {
                 else if (typeStr == "Death")  type = PlatformType::Death;
 
                 mPlatforms.emplace_back(sf::Vector2f{ x, y }, sf::Vector2f{ w, h }, type, sf::Vector2f{ moveX, moveY }, speed);
-
                 if (x + w + moveX > maxW) maxW = x + w + moveX;
                 if (y + h + moveY > maxH) maxH = y + h + moveY;
             }
         }
-        // ÏÀÐÑÈÍÃ ÑÓÙÍÎÑÒÅÉ
         else if (objectType == "Enemy") {
             std::string enemyType;
             float x, y;
@@ -132,8 +107,6 @@ void Game::loadLevel(const std::string& filename) {
     }
     mLevelLimits = { maxW, maxH };
     file.close();
-    std::cout << "DEBUG: level loaded. Camera limits X=" << maxW << " Y=" << maxH << "\n";
-    std::cout << "DEBUG: Entities spawned: " << mEnemies.size() << "\n";
 }
 
 void Game::updateCamera(sf::Time deltaTime) {
@@ -161,7 +134,6 @@ void Game::updateCamera(sf::Time deltaTime) {
     mGameView.setCenter(targetCenter);
 }
 
-// Ã£Ã«Ã Ã¢Ã­Ã»Ã© Ã¨Ã£Ã°Ã®Ã¢Ã®Ã© Ã¶Ã¨ÃªÃ«
 void Game::run() {
     while (GameWindow.isOpen()) {
         sf::Time deltaTime = Timer.restart();
@@ -172,13 +144,10 @@ void Game::run() {
             processEvents();
             update(TimePerFrame);
         }
-
-        // Ã Ã­Ã®Ã°Ã²Ã¨Ã§Ã Ã¶Ã¨Ã¿
         render();
     }
 }
 
-// Ã¢Ã¢Ã®Ã¤
 void Game::processEvents() {
     while (const std::optional<sf::Event> event = GameWindow.pollEvent()) {
         if (event->is<sf::Event::Closed>()) {
@@ -187,25 +156,91 @@ void Game::processEvents() {
     }
 }
 
-// Ã®Ã¡Ã­Ã®Ã¢Ã«Ã¥Ã­Ã¨Ã¥ Ã«Ã®Ã£Ã¨ÃªÃ¨
+void Game::spawnRandomMinion() {
+    int type = rand() % 3;
+    if (type == 0) mEnemies.push_back(std::make_unique<HomingChomper>(sf::Vector2f(1800.f, 200.f)));
+    else if (type == 1) mEnemies.push_back(std::make_unique<FloorChomper>(sf::Vector2f(2000.f, 570.f), -1.f));
+    else if (type == 2) mEnemies.push_back(std::make_unique<FlyingChomper>(sf::Vector2f(1600.f, 300.f)));
+}
+
+void Game::handleCollisions() {
+    auto& bullets = mPlayer.getBullets();
+    auto& supers = mPlayer.getSuperAttacks();
+    sf::FloatRect playerBounds = mPlayer.getBounds();
+
+    for (auto& enemy : mEnemies) {
+        if (!enemy->isActive()) continue;
+        sf::FloatRect enemyBounds = enemy->getBounds();
+
+        for (auto& bullet : bullets) {
+            if (bullet.isActive() && bullet.getBounds().findIntersection(enemyBounds).has_value()) {
+                enemy->takeDamage(bullet.getDamage());
+                bullet.destroy();
+            }
+        }
+
+        for (auto& super : supers) {
+            if (super.isActive() && super.getBounds().findIntersection(enemyBounds).has_value()) {
+                enemy->takeDamage(super.getDamage());
+            }
+        }
+
+        if (playerBounds.findIntersection(enemyBounds).has_value()) {
+            // Èãðîê ïîëó÷àåò óðîí, à ìèíüîí-êàìèêàäçå óíè÷òîæàåòñÿ
+            mPlayer.takeDamage(1);
+            enemy->destroy();
+        }
+
+        FlyingChomper* flyer = dynamic_cast<FlyingChomper*>(enemy.get());
+        if (flyer != nullptr) {
+            auto& enemyProjectiles = flyer->getProjectiles();
+            for (auto& proj : enemyProjectiles) {
+                if (proj.isActive() && proj.getBounds().findIntersection(playerBounds).has_value()) {
+                    mPlayer.takeDamage(static_cast<int>(proj.getDamage()));
+                    proj.destroy();
+                }
+            }
+        }
+    }
+}
+
 void Game::update(sf::Time deltaTime) {
     for (auto& platform : mPlatforms) {
         platform.update(deltaTime);
     }
+
     mPlayer.update(deltaTime);
+
+    mSpawnTimer += deltaTime;
+    if (mSpawnTimer >= sf::seconds(4.0f)) {
+        spawnRandomMinion();
+        mSpawnTimer = sf::Time::Zero;
+    }
+
+    for (auto& enemy : mEnemies) {
+        enemy->update(deltaTime, mPlayer.getPosition());
+    }
+
+    handleCollisions();
+
+    mEnemies.erase(std::remove_if(mEnemies.begin(), mEnemies.end(),
+        [](const std::unique_ptr<Enemy>& e) { return !e->isActive(); }), mEnemies.end());
+
     updateCamera(deltaTime);
 }
 
-// Ã®Ã²Ã°Ã¨Ã±Ã®Ã¢ÃªÃ 
 void Game::render() {
     GameWindow.clear(sf::Color(40, 40, 40));
     GameWindow.setView(mGameView);
 
-    // Ã®Ã²Ã°Ã¨Ã±Ã®Ã¢ÃªÃ  Ã¨Ã£Ã°Ã®Ã¢Ã»Ãµ Ã®Ã¡ÃºÃ¥ÃªÃ²Ã®Ã¢
     for (const auto& platform : mPlatforms) {
         platform.draw(GameWindow);
     }
-    mPlayer.draw(GameWindow);
 
+    for (const auto& enemy : mEnemies) {
+        enemy->draw(GameWindow);
+    }
+
+    mPlayer.draw(GameWindow);
     GameWindow.display();
 }

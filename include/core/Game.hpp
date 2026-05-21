@@ -1,8 +1,11 @@
 #pragma once
 #include "entities/Player.hpp"
 #include "core/Platform.hpp"
+#include "entities/Enemy.hpp"     
+#include "entities/Minions.hpp"   
 #include <vector>
 #include <string>
+#include <memory> 
 
 class Game {
 private:
@@ -16,20 +19,21 @@ private:
     Player mPlayer;
     std::vector<Platform> mPlatforms;
 
+    std::vector<std::unique_ptr<Enemy>> mEnemies;
+    sf::Time mSpawnTimer;
+
     sf::View mGameView;
     sf::Vector2f mLevelLimits;
 
-	// ãðàíèöû óðîâíÿ
-	const float mLevelWidth = 3000.f;
-	const float mLevelHeight = 600.f;
+    const float mLevelWidth = 3000.f;
+    const float mLevelHeight = 600.f;
 
 public:
     Game();
     Game(sf::Vector2u WindowResolution);
-    Game(const Game& other) = delete; //     ñôèãà-òî íåëüçÿ, â SFML íåò êîíñòðóêòîðîâ êîïèðîâàíèÿ Time è Clock
+    Game(const Game& other) = delete;
     ~Game();
 
-public:
     Game& operator=(const Game& other) = delete;
     void run();
 
@@ -38,7 +42,9 @@ private:
     void update(sf::Time deltaTime);
     void render();
 
-private:
     void loadLevel(const std::string& filename);
     void updateCamera(sf::Time deltaTime);
+
+    void spawnRandomMinion();
+    void handleCollisions();
 };
