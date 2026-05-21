@@ -17,11 +17,11 @@ Player::Player()
     , mDashDirection(1.f)
     , mCanDash(true)
 {
-    sf::Image defaultImage({ 50u, 80u }, sf::Color::Cyan);
-    if (mTexture.loadFromImage(defaultImage)) {
-        mSprite.setTexture(mTexture, true);
+    if (!mTexture.loadFromFile("assets/player.png")) {
+        sf::Image defaultImage({ 50u, 80u }, sf::Color::Cyan);
+        mTexture.loadFromImage(defaultImage);
     }
-    setPosition({ 200.f, 100.f });
+    mSprite.setTexture(mTexture, true);
 }
 
 void Player::setPlatforms(const std::vector<Platform>& platforms) {

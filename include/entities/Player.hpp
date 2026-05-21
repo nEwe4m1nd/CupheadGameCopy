@@ -65,6 +65,14 @@ public:
     void takeDamage(int amount) {
         if (!mIsInvincible) {
             mHp -= amount;
+
+            if (mHp <= 0) {
+                mPosition = { 200.f, 100.f };
+                mVelocityY = 0.f;
+                mIsDashing = false;
+                mHp = 3;
+            }
+
             mIsInvincible = true;
             mInvincibilityTimer = sf::Time::Zero;
         }

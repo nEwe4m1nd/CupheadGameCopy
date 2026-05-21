@@ -16,12 +16,17 @@ Platform::Platform(sf::Vector2f position, sf::Vector2f size, PlatformType type, 
     if (mType == PlatformType::OneWay)  mShape.setFillColor(sf::Color(0, 255, 0));
     if (mType == PlatformType::Death)   mShape.setFillColor(sf::Color(255, 0, 0));
 
-    if (mSpeed > 0.f && (moveOffset.x != 0.f || moveOffset.y != 0.f)) {
-        mIsMoving = true;
-        if (mType == PlatformType::Solid) mShape.setFillColor(sf::Color(130, 130, 150));
+    if (mType == PlatformType::OneWay) {
+        if (mTexture.loadFromFile("assets/leaf.png")) {
+            mShape.setTexture(&mTexture);
+            mShape.setFillColor(sf::Color::White); // Обязательно сбросить цвет, иначе он смешается с текстурой
+        }
     }
-    else {
-        mIsMoving = false;
+    else if (mType == PlatformType::Solid) {
+        if (mTexture.loadFromFile("assets/ground.png")) {
+            mShape.setTexture(&mTexture);
+            mShape.setFillColor(sf::Color::White);
+        }
     }
 }
 

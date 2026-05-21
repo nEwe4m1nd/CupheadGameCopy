@@ -28,6 +28,9 @@ private:
     const float mLevelWidth = 3000.f;
     const float mLevelHeight = 600.f;
 
+    sf::Texture mBackgroundTexture;
+    sf::Sprite mBackgroundSprite;
+
 public:
     Game();
     Game(sf::Vector2u WindowResolution);

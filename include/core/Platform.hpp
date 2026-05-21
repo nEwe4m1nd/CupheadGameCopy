@@ -20,6 +20,8 @@ private:
     int mDirection;
     sf::Vector2f mVelocity;
 
+    sf::Texture mTexture;
+
 public:
    Platform(sf::Vector2f position, sf::Vector2f size, PlatformType type,
         sf::Vector2f moveOffset = sf::Vector2f(0.f, 0.f), float speed = 0.f);

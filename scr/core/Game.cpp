@@ -1,4 +1,5 @@
 #include "core/Game.hpp"
+#include "entities/BOSSES/SunflowerBoss.hpp"
 #include <iostream>
 #include <optional>
 #include <fstream>
@@ -14,7 +15,15 @@ Game::Game()
     , TimePerFrame(sf::seconds(1.f / 60.f))
     , mLevelLimits(0.f, 0.f)
     , mSpawnTimer(sf::Time::Zero)
+    , mBackgroundTexture()
+    , mBackgroundSprite(mBackgroundTexture)
 {
+    if (mBackgroundTexture.loadFromFile("assets/forest_bg.jpg")) {
+        mBackgroundTexture.setRepeated(true); // Если фон нужно затайлить
+        mBackgroundSprite.setTexture(mBackgroundTexture);
+        // Растягиваем фон на ширину уровня
+        mBackgroundSprite.setTextureRect(sf::IntRect({ 0, 0 }, { 3000, 1080 }));
+    }
     mGameView.setSize({ 800.f, 600.f });
     loadLevel("include/levels/testLevel.txt");
     mPlayer.setPlatforms(mPlatforms);
@@ -28,7 +37,15 @@ Game::Game(sf::Vector2u windowResolution)
     , TimePerFrame(sf::seconds(1.f / 60.f))
     , mLevelLimits(0.f, 0.f)
     , mSpawnTimer(sf::Time::Zero)
+    , mBackgroundTexture()
+    , mBackgroundSprite(mBackgroundTexture)
 {
+    if (mBackgroundTexture.loadFromFile("assets/forest_bg.png")) {
+        mBackgroundTexture.setRepeated(true); // Если фон нужно затайлить
+        mBackgroundSprite.setTexture(mBackgroundTexture);
+        // Растягиваем фон на ширину уровня
+        mBackgroundSprite.setTextureRect(sf::IntRect({ 0, 0 }, { 3000, 1080 }));
+    }
     GameWindow.setFramerateLimit(60);
     mGameView.setSize(static_cast<sf::Vector2f>(windowResolution));
     loadLevel("include/levels/testLevel.txt");
@@ -101,6 +118,9 @@ void Game::loadLevel(const std::string& filename) {
                 }
                 else if (enemyType == "Flying") {
                     mEnemies.push_back(std::make_unique<FlyingChomper>(sf::Vector2f(x, y)));
+                } 
+                else if (enemyType == "Sunflower") {
+                    mEnemies.push_back(std::make_unique<SunflowerBoss>(sf::Vector2f(x, y)));
                 }
             }
         }
@@ -186,9 +206,11 @@ void Game::handleCollisions() {
         }
 
         if (playerBounds.findIntersection(enemyBounds).has_value()) {
-            // Игрок получает урон, а миньон-камикадзе уничтожается
             mPlayer.takeDamage(1);
-            enemy->destroy();
+
+            if (dynamic_cast<SunflowerBoss*>(enemy.get()) == nullptr) {
+                enemy->destroy();
+            }
         }
 
         FlyingChomper* flyer = dynamic_cast<FlyingChomper*>(enemy.get());
@@ -211,10 +233,20 @@ void Game::update(sf::Time deltaTime) {
 
     mPlayer.update(deltaTime);
 
-    mSpawnTimer += deltaTime;
-    if (mSpawnTimer >= sf::seconds(4.0f)) {
-        spawnRandomMinion();
-        mSpawnTimer = sf::Time::Zero;
+    bool isBossFight = false;
+    for (const auto& enemy : mEnemies) {
+        if (dynamic_cast<SunflowerBoss*>(enemy.get()) != nullptr) {
+            isBossFight = true;
+            break;
+        }
+    }
+
+    if (!isBossFight) {
+        mSpawnTimer += deltaTime;
+        if (mSpawnTimer >= sf::seconds(4.0f)) {
+            spawnRandomMinion();
+            mSpawnTimer = sf::Time::Zero;
+        }
     }
 
     for (auto& enemy : mEnemies) {
@@ -229,9 +261,13 @@ void Game::update(sf::Time deltaTime) {
     updateCamera(deltaTime);
 }
 
+
 void Game::render() {
-    GameWindow.clear(sf::Color(40, 40, 40));
+    GameWindow.clear(sf::Color(40, 40, 40)); // Оставляем цвет для подстраховки
     GameWindow.setView(mGameView);
+
+    // Рисуем фон
+    GameWindow.draw(mBackgroundSprite);
 
     for (const auto& platform : mPlatforms) {
         platform.draw(GameWindow);
