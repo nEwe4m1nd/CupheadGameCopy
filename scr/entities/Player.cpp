@@ -161,13 +161,15 @@ void Player::update(sf::Time deltaTime) {
 
                 if (platform.getType() == PlatformType::OneWay) continue;
 
-                if (mPosition.x < platform.getBounds().position.x) {
-                    mPosition.x -= intersection->size.x;
+                if (intersection->size.x < intersection->size.y) {
+                    if (mPosition.x < platform.getBounds().position.x) {
+                        mPosition.x -= intersection->size.x;
+                    }
+                    else {
+                        mPosition.x += intersection->size.x;
+                    }
+                    mSprite.setPosition(mPosition);
                 }
-                else {
-                    mPosition.x += intersection->size.x;
-                }
-                mSprite.setPosition(mPosition);
             }
         }
     }
@@ -213,29 +215,24 @@ void Player::update(sf::Time deltaTime) {
                         mVelocityY = 0.f;
                         touchedGroundThisFrame = true;
                         mSprite.setPosition(mPosition);
+
+                        mPosition.x += platform.getVelocity().x * dt;
                     }
                     continue;
                 }
 
-                if (intersection->size.x < intersection->size.y) {
-                    if (mPosition.x < platformBounds.position.x) {
-                        mPosition.x -= intersection->size.x;
-                    }
-                    else {
-                        mPosition.x += intersection->size.x;
-                    }
+                if (mVelocityY >= 0.f) {
+                    mPosition.y -= intersection->size.y;
+                    mVelocityY = 0.f;
+                    touchedGroundThisFrame = true;
+
+                    mPosition.x += platform.getVelocity().x * dt;
                 }
-                else {
-                    if (mVelocityY > 0.f) {
-                        mPosition.y -= intersection->size.y;
-                        mVelocityY = 0.f;
-                        touchedGroundThisFrame = true;
-                    }
-                    else if (mVelocityY < 0.f) {
-                        mPosition.y += intersection->size.y;
-                        mVelocityY = 0.f;
-                    }
+                else if (mVelocityY < 0.f) {
+                    mPosition.y += intersection->size.y;
+                    mVelocityY = 0.f;
                 }
+
                 mSprite.setPosition(mPosition);
             }
         }
