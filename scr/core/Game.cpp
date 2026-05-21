@@ -241,8 +241,9 @@ void Game::update(sf::Time deltaTime) {
         }
     }
 
+    // 2. —павним миньонов “ќЋ№ ќ если это не битва с боссом
     if (!isBossFight) {
-        mSpawnTimer += deltaTime;
+        mSpawnTimer += deltaTime; // ¬рем€ идет только когда нет босса
         if (mSpawnTimer >= sf::seconds(4.0f)) {
             spawnRandomMinion();
             mSpawnTimer = sf::Time::Zero;

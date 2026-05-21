@@ -17,7 +17,7 @@ SunflowerBoss::SunflowerBoss(sf::Vector2f position)
 
     //  орректируем Y: поднимаем босса вверх ровно на его высоту.
     // “еперь переданна€ координата Y будет означать уровень его ног (пола), а не макушки.
-    mPosition.y -= actualHeight/2 - 50;
+    mPosition.y -= actualHeight/2 - 30;
 
     mSprite.setPosition(mPosition);
     mBasePosition = mPosition; // ќб€зательно обновл€ем базовую позицию дл€ анимации покачивани€!

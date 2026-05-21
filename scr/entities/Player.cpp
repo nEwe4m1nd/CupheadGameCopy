@@ -28,6 +28,7 @@ void Player::setPlatforms(const std::vector<Platform>& platforms) {
     mPlatforms = &platforms;
 }
 
+
 void Player::update(sf::Time deltaTime) {
     float dt = deltaTime.asSeconds();
 
