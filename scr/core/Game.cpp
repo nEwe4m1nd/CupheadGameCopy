@@ -49,15 +49,20 @@ void Game::loadLevel(const std::string& filename) {
 
     if (!file.is_open()) {
         std::cout << "DEBUG: file '" << filename << "' not found!\n";
+<<<<<<< Updated upstream
         std::cout << "DEBUG: loading test level\n";
         
         //Ã§Ã Ã£Ã«Ã³Ã¸ÃªÃ 
         mPlatforms.emplace_back(sf::Vector2f{ 0.f, 550.f }, sf::Vector2f{ 3000.f, 50.f }, PlatformType::Solid);
         mLevelLimits = { 3000.f, 600.f };
+=======
+>>>>>>> Stashed changes
         return;
     }
 
     mPlatforms.clear();
+    mEnemies.clear();
+
     std::string line;
     float maxW = 800.f;
     float maxH = 600.f;
@@ -66,26 +71,69 @@ void Game::loadLevel(const std::string& filename) {
         if (line.empty() || line[0] == '#') continue;
 
         std::stringstream ss(line);
-        float x, y, w, h;
-        std::string typeStr;
+        std::string objectType;
+        ss >> objectType;
 
+<<<<<<< Updated upstream
         // Ã—Ã¨Ã²Ã Ã¥Ã¬ 4 Ã·Ã¨Ã±Ã«Ã  Ã¨ Ã±Ã²Ã°Ã®ÃªÃ³-Ã²Ã¨Ã¯
         if (ss >> x >> y >> w >> h >> typeStr) {
             PlatformType type = PlatformType::Solid; // ÃÃ® Ã³Ã¬Ã®Ã«Ã·Ã Ã­Ã¨Ã¾
+=======
+        // ÏÀÐÑÈÍÃ ÑÒÀÒÈ×ÍÎÉ ÏËÀÒÔÎÐÌÛ
+        if (objectType == "Platform") {
+            float x, y, w, h;
+            std::string typeStr;
+>>>>>>> Stashed changes
 
-            if (typeStr == "OneWay") type = PlatformType::OneWay;
-            else if (typeStr == "Death")  type = PlatformType::Death;
-            else if (typeStr == "Solid")  type = PlatformType::Solid;
+            if (ss >> x >> y >> w >> h >> typeStr) {
+                PlatformType type = PlatformType::Solid;
+                if (typeStr == "OneWay") type = PlatformType::OneWay;
+                else if (typeStr == "Death")  type = PlatformType::Death;
 
-            mPlatforms.emplace_back(sf::Vector2f{ x, y }, sf::Vector2f{ w, h }, type);
+                mPlatforms.emplace_back(sf::Vector2f{ x, y }, sf::Vector2f{ w, h }, type);
 
-            if (x + w > maxW) maxW = x + w;
-            if (y + h > maxH) maxH = y + h;
+                if (x + w > maxW) maxW = x + w;
+                if (y + h > maxH) maxH = y + h;
+            }
+        }
+        //  ÏÀÐÑÈÍÃ ÄÂÈÆÓÙÅÉÑß ÏËÀÒÔÎÐÌÛ
+        else if (objectType == "Moving") {
+            float x, y, w, h, moveX, moveY, speed;
+            std::string typeStr;
+
+            if (ss >> x >> y >> w >> h >> typeStr >> moveX >> moveY >> speed) {
+                PlatformType type = PlatformType::Solid;
+                if (typeStr == "OneWay") type = PlatformType::OneWay;
+                else if (typeStr == "Death")  type = PlatformType::Death;
+
+                mPlatforms.emplace_back(sf::Vector2f{ x, y }, sf::Vector2f{ w, h }, type, sf::Vector2f{ moveX, moveY }, speed);
+
+                if (x + w + moveX > maxW) maxW = x + w + moveX;
+                if (y + h + moveY > maxH) maxH = y + h + moveY;
+            }
+        }
+        // ÏÀÐÑÈÍÃ ÑÓÙÍÎÑÒÅÉ
+        else if (objectType == "Enemy") {
+            std::string enemyType;
+            float x, y;
+
+            if (ss >> enemyType >> x >> y) {
+                if (enemyType == "Homing") {
+                    mEnemies.push_back(std::make_unique<HomingChomper>(sf::Vector2f(x, y)));
+                }
+                else if (enemyType == "Floor") {
+                    mEnemies.push_back(std::make_unique<FloorChomper>(sf::Vector2f(x, y), -1.f));
+                }
+                else if (enemyType == "Flying") {
+                    mEnemies.push_back(std::make_unique<FlyingChomper>(sf::Vector2f(x, y)));
+                }
+            }
         }
     }
     mLevelLimits = { maxW, maxH };
     file.close();
-    std::cout << "DEBUG: camera limits X=" << maxW << " Y=" << maxH << "\n";
+    std::cout << "DEBUG: level loaded. Camera limits X=" << maxW << " Y=" << maxH << "\n";
+    std::cout << "DEBUG: Entities spawned: " << mEnemies.size() << "\n";
 }
 
 void Game::updateCamera(sf::Time deltaTime) {
@@ -141,6 +189,9 @@ void Game::processEvents() {
 
 // Ã®Ã¡Ã­Ã®Ã¢Ã«Ã¥Ã­Ã¨Ã¥ Ã«Ã®Ã£Ã¨ÃªÃ¨
 void Game::update(sf::Time deltaTime) {
+    for (auto& platform : mPlatforms) {
+        platform.update(deltaTime);
+    }
     mPlayer.update(deltaTime);
     updateCamera(deltaTime);
 }
