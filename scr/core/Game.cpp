@@ -9,7 +9,7 @@ const sf::Vector2u Resolution_HD(1280u, 720u);
 const sf::Vector2u Resolution_FHD(1920u, 1080u);
 
 Game::Game()
-    : GameWindow(sf::VideoMode({ 800u, 600u }), "Cuphead Game")
+    : GameWindow(sf::VideoMode({ 1280u, 720u }), "Cuphead Game")
     , Timer()
     , timeSinceLastUpdate(sf::Time::Zero)
     , TimePerFrame(sf::seconds(1.f / 60.f))
@@ -21,7 +21,7 @@ Game::Game()
     if (mBackgroundTexture.loadFromFile("assets/forest_bg.jpg")) {
         mBackgroundTexture.setRepeated(true);
         mBackgroundSprite.setTexture(mBackgroundTexture);
-        mBackgroundSprite.setTextureRect(sf::IntRect({ 0, 0 }, { 800, 720 }));
+        mBackgroundSprite.setTextureRect(sf::IntRect({ 0, 0 }, { 1280u, 720u }));
     }
     mGameView.setSize({ 800.f, 600.f });
     loadLevel("include/levels/testLevel.txt");
@@ -42,7 +42,7 @@ Game::Game(sf::Vector2u windowResolution)
     if (mBackgroundTexture.loadFromFile("assets/forest_bg.png")) {
         mBackgroundTexture.setRepeated(true);
         mBackgroundSprite.setTexture(mBackgroundTexture);
-        mBackgroundSprite.setTextureRect(sf::IntRect({ 0, 0 }, { 800, 720 }));
+        mBackgroundSprite.setTextureRect(sf::IntRect({ 0, 0 }, { 1280u, 720u }));
     }
     GameWindow.setFramerateLimit(60);
     mGameView.setSize(static_cast<sf::Vector2f>(windowResolution));
