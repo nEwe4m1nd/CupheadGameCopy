@@ -11,6 +11,7 @@ class Platform {
 private:
     sf::RectangleShape mShape;
     PlatformType mType;
+    bool mIsVisible = true;
 
     bool mIsMoving;
     sf::Vector2f mStartPosition;
@@ -29,6 +30,10 @@ public:
 public:
     void update(sf::Time deltaTime);
     void draw(sf::RenderTarget& target) const;
+
+public:
+    void setVisible(bool visible) { mIsVisible = visible; }
+    bool isVisible() const { return mIsVisible; }
 
 public:
     sf::FloatRect getBounds() const;

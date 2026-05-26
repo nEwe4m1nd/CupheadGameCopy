@@ -69,5 +69,7 @@ PlatformType Platform::getType() const {
 }
 
 void Platform::draw(sf::RenderTarget& target) const {
-    target.draw(mShape);
+    if (mIsVisible) {
+        target.draw(mShape);
+    }
 }
