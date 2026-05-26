@@ -17,27 +17,48 @@ Player::Player()
     , mDashDirection(1.f)
     , mCanDash(true)
 {
-    sf::Image defaultImage({ 50u, 80u }, sf::Color::Cyan);
-    if (mTexture.loadFromImage(defaultImage)) {
-        mSprite.setTexture(mTexture, true);
+    if (!mTexture.loadFromFile("assets/player.png")) {
+        sf::Image defaultImage({ 50u, 80u }, sf::Color::Cyan);
+        mTexture.loadFromImage(defaultImage);
     }
-    setPosition({ 200.f, 100.f });
+    mSprite.setTexture(mTexture, true);
 }
 
 void Player::setPlatforms(const std::vector<Platform>& platforms) {
     mPlatforms = &platforms;
 }
 
+
 void Player::update(sf::Time deltaTime) {
     float dt = deltaTime.asSeconds();
+
+    // Ã­Ã¥Ã³Ã¿Ã§Ã¢Ã¨Ã¬Ã®Ã±Ã²Ã¼
+    if (mIsInvincible) {
+        mInvincibilityTimer += deltaTime;
+        if (mInvincibilityTimer >= sf::seconds(1.5f)) {
+            mIsInvincible = false;
+            mSprite.setColor(sf::Color::White);
+        }
+        else {
+
+            if (static_cast<int>(mInvincibilityTimer.asMilliseconds() / 100) % 2 == 0) {
+                mSprite.setColor(sf::Color(255, 100, 100, 150));
+            }
+            else {
+                mSprite.setColor(sf::Color::White);
+            }
+        }
+    }
+
+    if (mLastLookDirection == sf::Vector2f(0.f, 0.f)) {
+        mLastLookDirection = { 1.f, 0.f };
+    }
 
     // ghost jump
     if (mIsGrounded) {
         mGhostJumpTimer = sf::Time::Zero;
         mCanGhostJump = true;
-        if (!mIsDashing) {
-            mCanDash = true;
-        }
+        if (!mIsDashing) mCanDash = true;
     }
     else {
         mGhostJumpTimer += deltaTime;
@@ -46,8 +67,7 @@ void Player::update(sf::Time deltaTime) {
         }
     }
 
-
-    // move input
+    // move input & Ã±Ã²Ã°Ã¥Ã«Ã¼Ã¡Ã 
     bool tabPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Tab);
     if (tabPressed && !mTabPressedLastFrame) {
         if (mCurrentWeapon == WeaponType::Peashooter) mCurrentWeapon = WeaponType::Spread;
@@ -57,75 +77,55 @@ void Player::update(sf::Time deltaTime) {
     mTabPressedLastFrame = tabPressed;
 
     bool isLockPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::C);
-
     sf::Vector2f moveInput(0.f, 0.f);
-    bool leftPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left);
-    bool rightPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right);
-    bool upPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up);
-    bool downPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down);
+
+    bool leftPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A);
+    bool rightPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D);
+    bool upPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W);
+    bool downPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S);
 
     if (leftPressed) {
-        if (!isLockPressed && !mIsDashing) {
-            moveInput.x -= mMovementSpeed;
-        }
+        if (!isLockPressed && !mIsDashing) moveInput.x -= mMovementSpeed;
         mLastLookDirection = { -1.f, 0.f };
     }
     if (rightPressed) {
-        if (!isLockPressed && !mIsDashing) {
-            moveInput.x += mMovementSpeed;
-        }
+        if (!isLockPressed && !mIsDashing) moveInput.x += mMovementSpeed;
         mLastLookDirection = { 1.f, 0.f };
     }
 
     if (upPressed) {
-        if (leftPressed) {
-            mLastLookDirection = { -0.7071f, -0.7071f };
-        }
-        else if (rightPressed) {
-            mLastLookDirection = { 0.7071f, -0.7071f };
-        }
-        else {
-            mLastLookDirection = { 0.f, -1.f };
-        }
+        if (leftPressed) mLastLookDirection = { -0.7071f, -0.7071f };
+        else if (rightPressed) mLastLookDirection = { 0.7071f, -0.7071f };
+        else mLastLookDirection = { 0.f, -1.f };
     }
     else if (downPressed) {
-        if (leftPressed) {
-            mLastLookDirection = { -0.7071f, 0.7071f };
-        }
-        else if (rightPressed) {
-            mLastLookDirection = { 0.7071f, 0.7071f };
-        }
-        else {
-            mLastLookDirection = { 0.f, 1.f };
+        if (!mIsGrounded || isLockPressed) {
+            if (leftPressed) mLastLookDirection = { -0.7071f, 0.7071f };
+            else if (rightPressed) mLastLookDirection = { 0.7071f, 0.7071f };
+            else mLastLookDirection = { 0.f, 1.f };
         }
     }
 
-
-    //äåø
+    // Ã¤Ã¥Ã¸
     bool shiftPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift);
-
     if (shiftPressed && !mDashPressedLastFrame && mCanDash && !mIsDashing) {
         mIsDashing = true;
         mCanDash = false;
         mDashTimer = sf::Time::Zero;
         mDashDirection = mLastLookDirection.x != 0.f ? (mLastLookDirection.x > 0.f ? 1.f : -1.f) : 1.f;
     }
-
     mDashPressedLastFrame = shiftPressed;
 
     if (mIsDashing) {
         mDashTimer += deltaTime;
-        if (mDashTimer >= DASH_DURATION) {
-            mIsDashing = false;
-        }
+        if (mDashTimer >= DASH_DURATION) mIsDashing = false;
         else {
             moveInput.x = mDashDirection * mMovementSpeed * 2.f;
             mVelocityY = 0.f;
         }
     }
 
-
-    // ïðûæîê
+    // Ã¯Ã°Ã»Ã¦Ã®Ãª
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) {
         if (mIsGrounded || mCanGhostJump) {
             mVelocityY = JUMP_FORCE;
@@ -135,52 +135,63 @@ void Player::update(sf::Time deltaTime) {
         }
     }
 
-
-    
     if (!mIsGrounded && !mIsDashing) {
         mVelocityY += GRAVITY * dt;
     }
 
+    mDashPressedLastFrame = shiftPressed;
 
-    //êîëëèçèÿ X
+    if (mIsGrounded) {
+        for (const auto& platform : *mPlatforms) {
+            if (getBounds().findIntersection(platform.getBounds())) {
+                mPosition += platform.getVelocity() * deltaTime.asSeconds();
+                break;
+            }
+        }
+    }
+
+    // ÃªÃ®Ã«Ã«Ã¨Ã§Ã¨Ã¿ X
     mPosition.x += moveInput.x * dt;
     mSprite.setPosition(mPosition);
 
     if (mPlatforms != nullptr) {
         for (const auto& platform : *mPlatforms) {
-            auto intersection = mSprite.getGlobalBounds().findIntersection(platform.getBounds());
+            sf::FloatRect playerBounds = mSprite.getGlobalBounds();
+            sf::FloatRect platformBounds = platform.getBounds();
+            auto intersection = playerBounds.findIntersection(platformBounds);
 
             if (intersection.has_value()) {
                 if (platform.getType() == PlatformType::Death) {
+                    takeDamage(1);
                     mPosition = { 200.f, 100.f };
                     mVelocityY = 0.f;
                     mIsDashing = false;
                     mSprite.setPosition(mPosition);
                     continue;
                 }
-
                 if (platform.getType() == PlatformType::OneWay) continue;
 
-                if (mPosition.x < platform.getBounds().position.x) {
-                    mPosition.x -= intersection->size.x;
+
+                if (intersection->size.x < intersection->size.y) {
+                    float playerCenterX = playerBounds.position.x + playerBounds.size.x / 2.f;
+                    float platformCenterX = platformBounds.position.x + platformBounds.size.x / 2.f;
+
+                    if (playerCenterX < platformCenterX) {
+                        mPosition.x -= intersection->size.x;
+                    }
+                    else {
+                        mPosition.x += intersection->size.x;
+                    }
+                    mSprite.setPosition(mPosition);
                 }
-                else {
-                    mPosition.x += intersection->size.x;
-                }
-                mSprite.setPosition(mPosition);
             }
         }
     }
 
-
-    //shooting
     handleShooting(deltaTime);
 
-
-    //êîëëèçèÿ Y
     mPosition.y += mVelocityY * dt;
     mSprite.setPosition(mPosition);
-
     bool touchedGroundThisFrame = false;
 
     if (mPlatforms != nullptr) {
@@ -191,6 +202,7 @@ void Player::update(sf::Time deltaTime) {
 
             if (intersection.has_value()) {
                 if (platform.getType() == PlatformType::Death) {
+                    takeDamage(1);
                     mPosition = { 200.f, 100.f };
                     mVelocityY = 0.f;
                     mIsDashing = false;
@@ -201,53 +213,45 @@ void Player::update(sf::Time deltaTime) {
                 if (platform.getType() == PlatformType::OneWay) {
                     float playerBottom = playerBounds.position.y + playerBounds.size.y;
                     float platformTop = platformBounds.position.y;
-
                     if (mVelocityY >= 0.f && (playerBottom - intersection->size.y <= platformTop + 8.f)) {
                         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
                             mVelocityY = 200.f;
                             mIsGrounded = false;
                             continue;
                         }
-
                         mPosition.y -= intersection->size.y;
                         mVelocityY = 0.f;
                         touchedGroundThisFrame = true;
                         mSprite.setPosition(mPosition);
+                        mPosition.x += platform.getVelocity().x * dt;
                     }
                     continue;
                 }
 
-                if (intersection->size.x < intersection->size.y) {
-                    if (mPosition.x < platformBounds.position.x) {
-                        mPosition.x -= intersection->size.x;
-                    }
-                    else {
-                        mPosition.x += intersection->size.x;
-                    }
+                float playerCenterY = playerBounds.position.y + playerBounds.size.y / 2.f;
+                float platformCenterY = platformBounds.position.y + platformBounds.size.y / 2.f;
+
+                if (playerCenterY < platformCenterY) {
+                    mPosition.y -= intersection->size.y;
+                    if (mVelocityY > 0.f) mVelocityY = 0.f; // Ã‘Ã¡Ã°Ã Ã±Ã»Ã¢Ã Ã¥Ã¬ Ã±ÃªÃ®Ã°Ã®Ã±Ã²Ã¼ Ã²Ã®Ã«Ã¼ÃªÃ® Ã¥Ã±Ã«Ã¨ Ã¯Ã Ã¤Ã Ã«Ã¨
+                    touchedGroundThisFrame = true;
+                    mPosition.x += platform.getVelocity().x * dt;
                 }
                 else {
-                    if (mVelocityY > 0.f) {
-                        mPosition.y -= intersection->size.y;
-                        mVelocityY = 0.f;
-                        touchedGroundThisFrame = true;
-                    }
-                    else if (mVelocityY < 0.f) {
-                        mPosition.y += intersection->size.y;
-                        mVelocityY = 0.f;
-                    }
+                    mPosition.y += intersection->size.y;
+                    if (mVelocityY < 0.f) mVelocityY = 0.f;
                 }
                 mSprite.setPosition(mPosition);
             }
         }
     }
-
     mIsGrounded = touchedGroundThisFrame;
 }
 
 void Player::handleShooting(sf::Time deltaTime) {
     mShootTimer += deltaTime;
 
-    // îáû÷íàÿ àòàêà
+    // Ã®Ã¡Ã»Ã·Ã­Ã Ã¿ Ã Ã²Ã ÃªÃ 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) && mShootTimer >= SHOOT_COOLDOWN) {
         sf::Vector2f spawnPos = mPosition + sf::Vector2f(25.f, 40.f);
         spawnPos += mLastLookDirection * 30.f;
@@ -270,7 +274,7 @@ void Player::handleShooting(sf::Time deltaTime) {
     }
 
 
-    // ñóïåð àòàêà 
+    // Ã±Ã³Ã¯Ã¥Ã° Ã Ã²Ã ÃªÃ  
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::V) && mSuperMeter >= 5.f) {
         sf::Vector2f spawnPos = mPosition + sf::Vector2f(25.f, 40.f);
         spawnPos += mLastLookDirection * 40.f;

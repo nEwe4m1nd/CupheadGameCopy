@@ -18,4 +18,5 @@ public:
 
     bool isActive() const { return mIsActive; }
     sf::FloatRect getBounds() const { return mShape.getGlobalBounds(); }
+    float getDamage() const { return 10.f; }
 };
