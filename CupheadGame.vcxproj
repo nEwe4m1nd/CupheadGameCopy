@@ -22,7 +22,8 @@
     <ClCompile Include="scr\core\Entity.cpp" />
     <ClCompile Include="scr\core\Game.cpp" />
     <ClCompile Include="scr\core\Platform.cpp" />
-    <ClCompile Include="scr\entities\BOSSES\SunFlowerBoss.cpp" />
+    <ClCompile Include="scr\entities\BOSSES\SunflowerBoss.cpp" />
+    <ClCompile Include="scr\entities\BOSSES\SunflowerStates.cpp" />
     <ClCompile Include="scr\entities\Bullet.cpp" />
     <ClCompile Include="scr\entities\Enemy.cpp" />
     <ClCompile Include="scr\entities\EnemyProjectile.cpp" />
@@ -42,7 +43,9 @@
     <ClInclude Include="include\core\Entity.hpp" />
     <ClInclude Include="include\core\Game.hpp" />
     <ClInclude Include="include\core\Platform.hpp" />
-    <ClInclude Include="include\entities\BOSSES\SunFlowerBoss.hpp" />
+    <ClInclude Include="include\entities\BOSSES\SunflowerBoss.hpp" />
+    <ClInclude Include="include\entities\BOSSES\SunflowerBrain.hpp" />
+    <ClInclude Include="include\entities\BOSSES\SunflowerStates.hpp" />
     <ClInclude Include="include\entities\Bullet.hpp" />
     <ClInclude Include="include\entities\Enemy.hpp" />
     <ClInclude Include="include\entities\EnemyProjectile.hpp" />

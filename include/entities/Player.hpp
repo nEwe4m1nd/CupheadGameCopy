@@ -56,6 +56,9 @@ public:
     void setWeapon(WeaponType type) { mCurrentWeapon = type; }
     void setSuper(SuperType type) { mCurrentSuper = type; }
 
+    float getVelocityY() const { return mVelocityY; }
+    void setVelocityY(float v) { mVelocityY = v; }
+
     std::vector<Bullet>& getBullets() { return mBullets; }
     std::vector<SuperAttack>& getSuperAttacks() { return mSuperAttacks; }
     sf::FloatRect getBounds() const { return mSprite.getGlobalBounds(); }

@@ -245,11 +245,24 @@ void Game::handleCollisions() {
         SunflowerBoss* boss = dynamic_cast<SunflowerBoss*>(enemy.get());
         if (boss != nullptr) {
             auto& bossProjectiles = boss->getProjectiles();
+            sf::FloatRect playerBounds = mPlayer.getBounds();
+
             for (auto& proj : bossProjectiles) {
-                // Если снаряд активен и пересекается с Чашеком
                 if (proj.isActive() && proj.getBounds().findIntersection(playerBounds).has_value()) {
-                    mPlayer.takeDamage(static_cast<int>(proj.getDamage()));
-                    proj.destroy(); // Снаряд исчезает после попадания
+
+                    // Если пуля РОЗОВАЯ и игрок ПАДАЕТ ВНИЗ (шлепок/двойной прыжок)
+                    if (proj.isParryable() && mPlayer.getVelocityY() > 0.f) {
+                        // ПАРИРОВАНИЕ УСПЕШНО
+                        // mPlayer.heal(1);       // Раскомментируй, если у тебя есть метод лечения
+                        mPlayer.setVelocityY(-400.f); // Подкидываем игрока обратно в воздух (отскок)
+                        proj.destroy();           // Розовая пуля исчезает
+                    }
+                    else {
+                        // ОБЫЧНОЕ ПОПАДАНИЕ (пуля не розовая ИЛИ игрок просто в неё врезался)
+                        mPlayer.takeDamage(static_cast<int>(proj.getDamage()));
+                        proj.destroy();           // Пуля исчезает после нанесения урона
+                    }
+
                 }
             }
         }

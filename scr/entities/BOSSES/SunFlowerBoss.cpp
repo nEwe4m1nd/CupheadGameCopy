@@ -1,72 +1,84 @@
 #include "entities/BOSSES/SunflowerBoss.hpp"
+#include "entities/BOSSES/SunflowerStates.hpp"
 #include <cmath>
+#include <algorithm>
 
 SunflowerBoss::SunflowerBoss(sf::Vector2f position)
-    : Enemy(position, 1500.f, 1.f) 
-    , mState(SunflowerState::Idle)
+    : Enemy(position, 1500.f, 1.f)
     , mBasePosition(position)
 {
+    // Безопасная загрузка текстуры (исправление warning C4834)
     if (!mTexture.loadFromFile("assets/sunflower.png")) {
         sf::Image img({ 200u, 300u }, sf::Color::Yellow);
-        mTexture.loadFromImage(img);
+        (void)mTexture.loadFromImage(img);
     }
     mSprite.setTexture(mTexture, true);
 
     float actualHeight = mSprite.getLocalBounds().size.y;
-
-    mPosition.y -= actualHeight/2 - 30;
-
+    mPosition.y -= actualHeight / 2.f - 30.f;
     mSprite.setPosition(mPosition);
     mBasePosition = mPosition;
+
+    // Инициализируем контекст автомата
+    mContext.boss = this;
+    mContext.player = nullptr;
+
+    changeState(std::make_unique<SunflowerIdleState>(mContext));
+}
+
+void SunflowerBoss::changeState(std::unique_ptr<BossState> newState) {
+    if (mCurrentState) {
+        mCurrentState->exit();
+    }
+    mCurrentState = std::move(newState);
+    if (mCurrentState) {
+        mCurrentState->enter();
+    }
 }
 
 void SunflowerBoss::update(sf::Time deltaTime) {}
 
 void SunflowerBoss::update(sf::Time deltaTime, sf::Vector2f playerPos) {
-    mStateTimer += deltaTime;
+    float dt = deltaTime.asSeconds();
+    mLastPlayerPos = playerPos; // Сохраняем позицию игрока для стейтов атак
 
-    if (mState == SunflowerState::Idle) {
-
-        mPosition.y = mBasePosition.y + std::sin(mStateTimer.asSeconds() * 2.f) * 20.f;
-        mSprite.setPosition(mPosition);
-
-        if (mStateTimer.asSeconds() > 3.f) {
-            mState = (rand() % 2 == 0) ? SunflowerState::Gatling : SunflowerState::Lunge;
-            mStateTimer = sf::Time::Zero;
-        }
-    }
-    else if (mState == SunflowerState::Gatling) {
-        mShootTimer += deltaTime;
-        if (mShootTimer.asSeconds() >= 0.5f) {
-            // Летит влево, в сторону игрока
-            sf::Vector2f dir(-1.f, (rand() % 100 - 50) / 100.f);
-            mProjectiles.emplace_back(mPosition + sf::Vector2f(0.f, 100.f), dir, 400.f, 1.f, true);
-            mShootTimer = sf::Time::Zero;
-        }
-        if (mStateTimer.asSeconds() > 4.f) {
-            mState = SunflowerState::Idle;
-            mStateTimer = sf::Time::Zero;
-        }
-    }
-    else if (mState == SunflowerState::Lunge) {
-        // Резкий рывок влево и плавный возврат
-        if (mStateTimer.asSeconds() < 1.f) {
-            mPosition.x = mBasePosition.x - std::sin(mStateTimer.asSeconds() * 3.14f) * 300.f;
-        }
-        else {
-            mPosition.x = mBasePosition.x;
-            mState = SunflowerState::Idle;
-            mStateTimer = sf::Time::Zero;
-        }
-        mSprite.setPosition(mPosition);
-    }
-
+    // Обновляем и чистим снаряды босса
     for (auto& proj : mProjectiles) proj.update(deltaTime);
     mProjectiles.erase(std::remove_if(mProjectiles.begin(), mProjectiles.end(),
         [](const EnemyProjectile& p) { return !p.isActive(); }), mProjectiles.end());
+
+    // Обновляем и чистим миньонов (летунов от атаки лозами)
+    for (auto& minion : mMinions) {
+        minion->update(deltaTime, playerPos);
+    }
+    mMinions.erase(std::remove_if(mMinions.begin(), mMinions.end(),
+        [](const std::unique_ptr<Enemy>& m) { return !m->isActive(); }), mMinions.end());
+
+    float distance = std::abs(playerPos.x - mPosition.x);
+
+    // Работа машины состояний (FSM)
+    if (!mCurrentState || mCurrentState->isFinished()) {
+        AttackID nextAttack = mBrain.chooseNextAttack(dt, distance, mHp / 1500.f);
+
+        if (nextAttack == AttackID::Acorns) changeState(std::make_unique<SunflowerAcornsState>(mContext));
+        else if (nextAttack == AttackID::Gatling) changeState(std::make_unique<SunflowerGatlingState>(mContext));
+        else if (nextAttack == AttackID::Boomerang) changeState(std::make_unique<SunflowerBoomerangState>(mContext));
+        else if (nextAttack == AttackID::Vines) changeState(std::make_unique<SunflowerVinesState>(mContext));
+        else if (nextAttack == AttackID::Lunge) changeState(std::make_unique<SunflowerLungeState>(mContext));
+        else {
+            if (!mCurrentState || dynamic_cast<SunflowerIdleState*>(mCurrentState.get()) == nullptr) {
+                changeState(std::make_unique<SunflowerIdleState>(mContext));
+            }
+        }
+    }
+
+    if (mCurrentState) {
+        mCurrentState->update(dt);
+    }
 }
 
 void SunflowerBoss::draw(sf::RenderTarget& target) const {
     target.draw(mSprite);
     for (const auto& proj : mProjectiles) proj.draw(target);
+    for (const auto& minion : mMinions) minion->draw(target);
 }
