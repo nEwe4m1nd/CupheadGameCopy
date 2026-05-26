@@ -32,7 +32,7 @@ void Player::setPlatforms(const std::vector<Platform>& platforms) {
 void Player::update(sf::Time deltaTime) {
     float dt = deltaTime.asSeconds();
 
-    // неуязвимость
+    // Г­ГҐГіГїГ§ГўГЁГ¬Г®Г±ГІГј
     if (mIsInvincible) {
         mInvincibilityTimer += deltaTime;
         if (mInvincibilityTimer >= sf::seconds(1.5f)) {
@@ -67,7 +67,7 @@ void Player::update(sf::Time deltaTime) {
         }
     }
 
-    // move input & стрельба
+    // move input & Г±ГІГ°ГҐГ«ГјГЎГ 
     bool tabPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Tab);
     if (tabPressed && !mTabPressedLastFrame) {
         if (mCurrentWeapon == WeaponType::Peashooter) mCurrentWeapon = WeaponType::Spread;
@@ -106,7 +106,7 @@ void Player::update(sf::Time deltaTime) {
         }
     }
 
-    // деш
+    // Г¤ГҐГё
     bool shiftPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift);
     if (shiftPressed && !mDashPressedLastFrame && mCanDash && !mIsDashing) {
         mIsDashing = true;
@@ -125,7 +125,7 @@ void Player::update(sf::Time deltaTime) {
         }
     }
 
-    // прыжок
+    // ГЇГ°Г»Г¦Г®ГЄ
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) {
         if (mIsGrounded || mCanGhostJump) {
             mVelocityY = JUMP_FORCE;
@@ -139,6 +139,7 @@ void Player::update(sf::Time deltaTime) {
         mVelocityY += GRAVITY * dt;
     }
 
+    mDashPressedLastFrame = shiftPressed;
 
     if (mIsGrounded) {
         for (const auto& platform : *mPlatforms) {
@@ -149,7 +150,7 @@ void Player::update(sf::Time deltaTime) {
         }
     }
 
-    // коллизия X
+    // ГЄГ®Г«Г«ГЁГ§ГЁГї X
     mPosition.x += moveInput.x * dt;
     mSprite.setPosition(mPosition);
 
@@ -232,7 +233,7 @@ void Player::update(sf::Time deltaTime) {
 
                 if (playerCenterY < platformCenterY) {
                     mPosition.y -= intersection->size.y;
-                    if (mVelocityY > 0.f) mVelocityY = 0.f; // Сбрасываем скорость только если падали
+                    if (mVelocityY > 0.f) mVelocityY = 0.f; // Г‘ГЎГ°Г Г±Г»ГўГ ГҐГ¬ Г±ГЄГ®Г°Г®Г±ГІГј ГІГ®Г«ГјГЄГ® ГҐГ±Г«ГЁ ГЇГ Г¤Г Г«ГЁ
                     touchedGroundThisFrame = true;
                     mPosition.x += platform.getVelocity().x * dt;
                 }
@@ -250,7 +251,7 @@ void Player::update(sf::Time deltaTime) {
 void Player::handleShooting(sf::Time deltaTime) {
     mShootTimer += deltaTime;
 
-    // обычная атака
+    // Г®ГЎГ»Г·Г­Г Гї Г ГІГ ГЄГ 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) && mShootTimer >= SHOOT_COOLDOWN) {
         sf::Vector2f spawnPos = mPosition + sf::Vector2f(25.f, 40.f);
         spawnPos += mLastLookDirection * 30.f;
@@ -273,7 +274,7 @@ void Player::handleShooting(sf::Time deltaTime) {
     }
 
 
-    // супер атака 
+    // Г±ГіГЇГҐГ° Г ГІГ ГЄГ  
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::V) && mSuperMeter >= 5.f) {
         sf::Vector2f spawnPos = mPosition + sf::Vector2f(25.f, 40.f);
         spawnPos += mLastLookDirection * 40.f;
