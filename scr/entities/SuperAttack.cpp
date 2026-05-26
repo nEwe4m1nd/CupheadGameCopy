@@ -1,7 +1,7 @@
 #include "entities/SuperAttack.hpp"
 
-SuperAttack::SuperAttack(sf::Vector2f position, sf::Vector2f direction)
-    : mDirection(direction), mSpeed(1200.f), mIsActive(true)
+SuperAttack::SuperAttack(sf::Vector2f position, sf::Vector2f direction, float damage)
+    : mDirection(direction), mSpeed(1200.f), mDamage(damage), mIsActive(true)
 {
     mShape.setSize({ 40.f, 40.f });
     mShape.setFillColor(sf::Color::Magenta);
