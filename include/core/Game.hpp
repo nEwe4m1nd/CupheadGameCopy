@@ -1,36 +1,42 @@
 #pragma once
-#include "include.hpp"
-#include "core/Platform.hpp"
 #include "entities/Player.hpp"
-#include "entities/Enemy.hpp"
-#include "entities/Minions.hpp"
-#include <ctime>
+#include "core/Platform.hpp"
+#include "entities/Enemy.hpp"     
+#include "entities/Minions.hpp"   
 #include <vector>
-#include <memory>
+#include <string>
+#include <memory> 
 
 class Game {
 private:
+    sf::Vector2u WindowResolution;
     sf::RenderWindow GameWindow;
-    sf::View mGameView;
     sf::Clock Timer;
     sf::Time timeSinceLastUpdate;
-    const sf::Time TimePerFrame;
+    sf::Time TimePerFrame;
+    std::vector<int> entityList;
 
-    sf::Vector2f mLevelLimits;
-    std::vector<Platform> mPlatforms;
     Player mPlayer;
+    std::vector<Platform> mPlatforms;
 
     std::vector<std::unique_ptr<Enemy>> mEnemies;
     sf::Time mSpawnTimer;
-    const sf::Time SPAWN_COOLDOWN = sf::seconds(4.0f);
+
+    sf::View mGameView;
+    sf::Vector2f mLevelLimits;
+
+    const float mLevelWidth = 3000.f;
+    const float mLevelHeight = 600.f;
+
+    sf::Texture mBackgroundTexture;
+    sf::Sprite mBackgroundSprite;
 
 public:
     Game();
     Game(sf::Vector2u WindowResolution);
-    Game(const Game& other) = delete; //     сфига-то нельз€, в SFML нет конструкторов копировани€ Time и Clock
+    Game(const Game& other) = delete;
     ~Game();
 
-public:
     Game& operator=(const Game& other) = delete;
     void run();
 
@@ -38,10 +44,10 @@ private:
     void processEvents();
     void update(sf::Time deltaTime);
     void render();
-    void spawnRandomMinion();
-    void handleCollisions();
 
-private:
     void loadLevel(const std::string& filename);
     void updateCamera(sf::Time deltaTime);
+
+    void spawnRandomMinion();
+    void handleCollisions();
 };

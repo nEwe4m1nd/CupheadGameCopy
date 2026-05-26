@@ -1,89 +1,150 @@
-#include "include.hpp"
 #include "core/Game.hpp"
+#include "entities/BOSSES/SunflowerBoss.hpp"
 #include <iostream>
 #include <optional>
 #include <fstream>
 #include <sstream>
 
-
 const sf::Vector2u Resolution_HD(1280u, 720u);
 const sf::Vector2u Resolution_FHD(1920u, 1080u);
 
-
 Game::Game()
-    : GameWindow(sf::VideoMode({ 800u, 600u }), "Cuphead Game")
+    : Timer()
+    , timeSinceLastUpdate(sf::Time::Zero)
+    , TimePerFrame(sf::seconds(1.f / 60.f))
+    , mSpawnTimer(sf::Time::Zero)
+    , mBackgroundTexture()
+    , mBackgroundSprite(mBackgroundTexture)
+{
+    sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
+
+    // Создаем обычное окно под разрешение рабочего стола
+    GameWindow.create(desktopMode, "Cuphead Game", sf::Style::Default);
+    GameWindow.setFramerateLimit(60);
+
+    // Размер области видимости камеры на экране
+    mGameView.setSize({ 1920.f, 1080.f });
+    mGameView.setCenter({ 1920.f / 2.f, 1080.f / 2.f });
+
+    // ОШИБКА БЫЛА ТУТ: Границы уровня должны быть шире, чем экран (1920),
+    // чтобы камера могла ехать вправо. Поставим длину 3000 (как mLevelWidth в хэдере)
+    mLevelLimits = { 3000.f, 1080.f };
+
+    // ЯВНО загружаем и натягиваем текстуру на всю длину и высоту игрового мира
+    if (mBackgroundTexture.loadFromFile("assets/forest_bg.jpg")) {
+        mBackgroundTexture.setRepeated(true);
+        mBackgroundSprite.setTexture(mBackgroundTexture);
+
+        // Натягиваем текстуру от 0 до 3000 по ширине и до 1080 по высоте камеры
+        mBackgroundSprite.setTextureRect(sf::IntRect({ 0, 0 }, { 3000, 1080 }));
+    }
+
+    loadLevel("include/levels/testLevel.txt");
+    mPlayer.setPlatforms(mPlatforms);
+    srand(static_cast<unsigned>(time(nullptr)));
+}
+
+Game::Game(sf::Vector2u windowResolution)
+    : GameWindow(sf::VideoMode(windowResolution), "Cuphead Clone Project")
     , Timer()
     , timeSinceLastUpdate(sf::Time::Zero)
     , TimePerFrame(sf::seconds(1.f / 60.f))
     , mLevelLimits(0.f, 0.f)
     , mSpawnTimer(sf::Time::Zero)
+    , mBackgroundTexture()
+    , mBackgroundSprite(mBackgroundTexture)
 {
-    mGameView.setSize({ 800.f, 600.f });
-    loadLevel("include/levels/testLevel.txt");
-    mPlayer.setPlatforms(mPlatforms);
-}
+    if (mBackgroundTexture.loadFromFile("assets/forest_bg.jpg")) {
+        mBackgroundSprite.setTexture(mBackgroundTexture);
 
+        sf::Vector2u textureSize = mBackgroundTexture.getSize();
+        float scaleX = 1920.f / textureSize.x;
+        float scaleY = 1080.f / textureSize.y;
 
-Game::Game(sf::Vector2u windowResolution)
-    : GameWindow(sf::VideoMode(windowResolution), "Cuphead Clone Project") // Передаем аргумент напрямую
-    , Timer()
-    , timeSinceLastUpdate(sf::Time::Zero)
-    , TimePerFrame(sf::seconds(1.f / 60.f))
-    , mLevelLimits(0.f, 0.f)
-{
+        mBackgroundSprite.setScale({ scaleX, scaleY });
+    }
     GameWindow.setFramerateLimit(60);
     mGameView.setSize(static_cast<sf::Vector2f>(windowResolution));
-
     loadLevel("include/levels/testLevel.txt");
-
     mPlayer.setPlatforms(mPlatforms);
+    srand(static_cast<unsigned>(time(nullptr)));
 }
 
+Game::~Game() {}
 
-Game::~Game() {
-}
 
 void Game::loadLevel(const std::string& filename) {
     std::ifstream file(filename);
-
     if (!file.is_open()) {
-        std::cout << "DEBUG: file '" << filename << "' not found!\n";
-        std::cout << "DEBUG: loading test level\n";
-        
-        //заглушка
-        mPlatforms.emplace_back(sf::Vector2f{ 0.f, 550.f }, sf::Vector2f{ 3000.f, 50.f }, PlatformType::Solid);
-        mLevelLimits = { 3000.f, 600.f };
+        std::cerr << "Error: Could not open level file " << filename << std::endl;
         return;
     }
 
     mPlatforms.clear();
-    std::string line;
-    float maxW = 800.f;
-    float maxH = 600.f;
+    mEnemies.clear(); // Очищаем старых врагов перед загрузкой
 
+    std::string line;
     while (std::getline(file, line)) {
-        if (line.empty() || line[0] == '#') continue;
+        if (line.empty() || line[0] == '/') continue;
 
         std::stringstream ss(line);
-        float x, y, w, h;
-        std::string typeStr;
+        std::string identifier;
 
-        if (ss >> x >> y >> w >> h >> typeStr) {
-            PlatformType type = PlatformType::Solid;
+        // Читаем первое слово в строке
+        if (ss >> identifier) {
 
-            if (typeStr == "OneWay") type = PlatformType::OneWay;
-            else if (typeStr == "Death")  type = PlatformType::Death;
-            else if (typeStr == "Solid")  type = PlatformType::Solid;
+            // 1. ПАРСИМ ПЛАТФОРМЫ (если строка начинается с "0", "1" или "2")
+            if (identifier == "0" || identifier == "1" || identifier == "2") {
+                int typeInt = std::stoi(identifier);
+                float x, y, w, h, offX, offY, speed;
 
-            mPlatforms.emplace_back(sf::Vector2f{ x, y }, sf::Vector2f{ w, h }, type);
-
-            if (x + w > maxW) maxW = x + w;
-            if (y + h > maxH) maxH = y + h;
+                if (ss >> x >> y >> w >> h >> offX >> offY >> speed) {
+                    PlatformType type = static_cast<PlatformType>(typeInt);
+                    mPlatforms.emplace_back(
+                        sf::Vector2f(x, y), sf::Vector2f(w, h), type, sf::Vector2f(offX, offY), speed
+                    );
+                }
+            }
+            // 2. ПАРСИМ БОССА
+            else if (identifier == "Boss") {
+                std::string bossName;
+                float x, y;
+                if (ss >> bossName >> x >> y) {
+                    if (bossName == "Sunflower") {
+                        mEnemies.push_back(std::make_unique<SunflowerBoss>(sf::Vector2f(x, y)));
+                    }
+                }
+            }
+            // 3. ПАРСИМ МИНЬОНОВ
+            else if (identifier == "Enemy") {
+                std::string enemyType;
+                float x, y;
+                if (ss >> enemyType >> x >> y) {
+                    if (enemyType == "Homing") mEnemies.push_back(std::make_unique<HomingChomper>(sf::Vector2f(x, y)));
+                    else if (enemyType == "Floor") mEnemies.push_back(std::make_unique<FloorChomper>(sf::Vector2f(x, y), -1.f));
+                    else if (enemyType == "Flying") mEnemies.push_back(std::make_unique<FlyingChomper>(sf::Vector2f(x, y)));
+                }
+            }
         }
     }
-    mLevelLimits = { maxW, maxH };
     file.close();
-    std::cout << "DEBUG: camera limits X=" << maxW << " Y=" << maxH << "\n";
+
+    // --- ЛОГИКА ИСКЛЮЧЕНИЯ: ПРИОРИТЕТ БОССА ---
+    bool hasBoss = false;
+    for (const auto& enemy : mEnemies) {
+        if (dynamic_cast<SunflowerBoss*>(enemy.get()) != nullptr) {
+            hasBoss = true;
+            break;
+        }
+    }
+
+    // Если на уровне есть босс, стираем из вектора всех, кто боссом не является
+    if (hasBoss) {
+        mEnemies.erase(std::remove_if(mEnemies.begin(), mEnemies.end(),
+            [](const std::unique_ptr<Enemy>& e) {
+                return dynamic_cast<SunflowerBoss*>(e.get()) == nullptr;
+            }), mEnemies.end());
+    }
 }
 
 void Game::updateCamera(sf::Time deltaTime) {
@@ -111,7 +172,6 @@ void Game::updateCamera(sf::Time deltaTime) {
     mGameView.setCenter(targetCenter);
 }
 
-// главный игровой цикл
 void Game::run() {
     while (GameWindow.isOpen()) {
         sf::Time deltaTime = Timer.restart();
@@ -122,13 +182,10 @@ void Game::run() {
             processEvents();
             update(TimePerFrame);
         }
-
-        // анортизация
         render();
     }
 }
 
-// ввод
 void Game::processEvents() {
     while (const std::optional<sf::Event> event = GameWindow.pollEvent()) {
         if (event->is<sf::Event::Closed>()) {
@@ -137,14 +194,89 @@ void Game::processEvents() {
     }
 }
 
-// обновление логики
+void Game::spawnRandomMinion() {
+    int type = rand() % 3;
+    if (type == 0) mEnemies.push_back(std::make_unique<HomingChomper>(sf::Vector2f(1800.f, 200.f)));
+    else if (type == 1) mEnemies.push_back(std::make_unique<FloorChomper>(sf::Vector2f(2000.f, 570.f), -1.f));
+    else if (type == 2) mEnemies.push_back(std::make_unique<FlyingChomper>(sf::Vector2f(1600.f, 300.f)));
+}
+
+void Game::handleCollisions() {
+    auto& bullets = mPlayer.getBullets();
+    auto& supers = mPlayer.getSuperAttacks();
+    sf::FloatRect playerBounds = mPlayer.getBounds();
+
+    for (auto& enemy : mEnemies) {
+        if (!enemy->isActive()) continue;
+        sf::FloatRect enemyBounds = enemy->getBounds();
+
+        for (auto& bullet : bullets) {
+            if (bullet.isActive() && bullet.getBounds().findIntersection(enemyBounds).has_value()) {
+                enemy->takeDamage(bullet.getDamage());
+                bullet.destroy();
+            }
+        }
+
+        for (auto& super : supers) {
+            if (super.isActive() && super.getBounds().findIntersection(enemyBounds).has_value()) {
+                enemy->takeDamage(super.getDamage());
+            }
+        }
+
+        if (playerBounds.findIntersection(enemyBounds).has_value()) {
+            mPlayer.takeDamage(1);
+
+            if (dynamic_cast<SunflowerBoss*>(enemy.get()) == nullptr) {
+                enemy->destroy();
+            }
+        }
+
+        FlyingChomper* flyer = dynamic_cast<FlyingChomper*>(enemy.get());
+        if (flyer != nullptr) {
+            auto& enemyProjectiles = flyer->getProjectiles();
+            for (auto& proj : enemyProjectiles) {
+                if (proj.isActive() && proj.getBounds().findIntersection(playerBounds).has_value()) {
+                    mPlayer.takeDamage(static_cast<int>(proj.getDamage()));
+                    proj.destroy();
+                }
+            }
+        }
+
+        SunflowerBoss* boss = dynamic_cast<SunflowerBoss*>(enemy.get());
+        if (boss != nullptr) {
+            auto& bossProjectiles = boss->getProjectiles();
+            for (auto& proj : bossProjectiles) {
+                // Если снаряд активен и пересекается с Чашеком
+                if (proj.isActive() && proj.getBounds().findIntersection(playerBounds).has_value()) {
+                    mPlayer.takeDamage(static_cast<int>(proj.getDamage()));
+                    proj.destroy(); // Снаряд исчезает после попадания
+                }
+            }
+        }
+    }
+}
+
 void Game::update(sf::Time deltaTime) {
+    for (auto& platform : mPlatforms) {
+        platform.update(deltaTime);
+    }
+
     mPlayer.update(deltaTime);
 
-    mSpawnTimer += deltaTime;
-    if (mSpawnTimer >= SPAWN_COOLDOWN) {
-        spawnRandomMinion();
-        mSpawnTimer = sf::Time::Zero;
+    bool isBossFight = false;
+    for (const auto& enemy : mEnemies) {
+        if (dynamic_cast<SunflowerBoss*>(enemy.get()) != nullptr) {
+            isBossFight = true;
+            break;
+        }
+    }
+
+    if (!isBossFight) {
+        mSpawnTimer += deltaTime; 
+        if (mSpawnTimer >= sf::seconds(4.0f)) {
+            spawnRandomMinion();
+            mSpawnTimer = sf::Time::Zero;
+        }
     }
 
     for (auto& enemy : mEnemies) {
@@ -159,77 +291,26 @@ void Game::update(sf::Time deltaTime) {
     updateCamera(deltaTime);
 }
 
-void Game::spawnRandomMinion() {
-    int type = rand() % 3;
 
-    if (type == 0) {
-        mEnemies.push_back(std::make_unique<HomingChomper>(sf::Vector2f(1800.f, 200.f)));
-    }
-    else if (type == 1) {
-        mEnemies.push_back(std::make_unique<FloorChomper>(sf::Vector2f(2000.f, 570.f), -1.f));
-    }
-    else if (type == 2) {
-        mEnemies.push_back(std::make_unique<FlyingChomper>(sf::Vector2f(1600.f, 300.f)));
-    }
-}
-
-void Game::handleCollisions() {
-    auto& bullets = mPlayer.getBullets();
-    auto& supers = mPlayer.getSuperAttacks();
-    sf::FloatRect playerBounds = mPlayer.getBounds();
-
-    for (auto& enemy : mEnemies) {
-        if (!enemy->isActive()) continue;
-
-        sf::FloatRect enemyBounds = enemy->getBounds();
-
-        // пули игрока -> враг
-        for (auto& bullet : bullets) {
-            if (bullet.isActive() && bullet.getBounds().findIntersection(enemyBounds).has_value()) {
-                enemy->takeDamage(bullet.getDamage());
-                bullet.destroy();
-            }
-        }
-
-        // супер-атака игрока -> враг
-        for (auto& super : supers) {
-            if (super.isActive() && super.getBounds().findIntersection(enemyBounds).has_value()) {
-                enemy->takeDamage(super.getDamage());
-            }
-        }
-
-        /// тело врага -> игрок
-        if (playerBounds.findIntersection(enemyBounds).has_value()) {
-            mPlayer.takeDamage(1);
-            enemy->destroy();
-        }
-
-        FlyingChomper* flyer = dynamic_cast<FlyingChomper*>(enemy.get());
-        if (flyer != nullptr) {
-            auto& enemyProjectiles = flyer->getProjectiles();
-            for (auto& proj : enemyProjectiles) {
-                if (proj.isActive() && proj.getBounds().findIntersection(playerBounds).has_value()) {
-                    mPlayer.takeDamage(static_cast<int>(proj.getDamage()));
-                    proj.destroy();
-                }
-            }
-        }
-    }
-}
-
-// отрисовка
 void Game::render() {
     GameWindow.clear(sf::Color::Black);
+
+    // 1. Рисуем фон в "координатах окна" (без учета игровой камеры)
+    GameWindow.setView(GameWindow.getDefaultView());
+    GameWindow.draw(mBackgroundSprite);
+
+    // 2. Включаем игровую камеру для всех остальных объектов (игрок, босс, платформы)
     GameWindow.setView(mGameView);
 
-    for (const auto& platform : mPlatforms) {
+    for (auto& platform : mPlatforms) {
         platform.draw(GameWindow);
     }
 
-    for (const auto& enemy : mEnemies) {
+    for (auto& enemy : mEnemies) {
         enemy->draw(GameWindow);
     }
 
     mPlayer.draw(GameWindow);
+
     GameWindow.display();
 }

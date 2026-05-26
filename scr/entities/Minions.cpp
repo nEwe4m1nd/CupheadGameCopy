@@ -1,17 +1,23 @@
 #include "entities/Minions.hpp"
 #include <cmath>
 
-// HomingChomper
+// ==========================================
+// HomingChomper (Зеленый наводящийся)
+// ==========================================
 HomingChomper::HomingChomper(sf::Vector2f position)
     : Enemy(position, 10.f, 1.f)
     , mSpeed(250.f)
 {
     sf::Image img({ 40u, 40u }, sf::Color::Green);
-    mTexture.loadFromImage(img);
+    (void)mTexture.loadFromImage(img); // (void) убирает warning C4834
     mSprite.setTexture(mTexture, true);
 }
 
+// РЕШЕНИЕ LNK2001: Добавлены недостающие методы
 void HomingChomper::update(sf::Time deltaTime) {}
+void HomingChomper::draw(sf::RenderTarget& target) const {
+    target.draw(mSprite);
+}
 
 void HomingChomper::update(sf::Time deltaTime, sf::Vector2f playerPos) {
     sf::Vector2f direction = playerPos - mPosition;
@@ -26,35 +32,35 @@ void HomingChomper::update(sf::Time deltaTime, sf::Vector2f playerPos) {
     mSprite.setPosition(mPosition);
 }
 
-void HomingChomper::draw(sf::RenderTarget& target) const {
-    target.draw(mSprite);
-}
 
-
-// FloorChomper
+// ==========================================
+// FloorChomper (Фиолетовый наземный)
+// ==========================================
 FloorChomper::FloorChomper(sf::Vector2f position, float startDirection)
     : Enemy(position, 15.f, 1.f)
     , mSpeed(150.f)
     , mMoveDirection(startDirection)
 {
     sf::Image img({ 50u, 30u }, sf::Color(128, 0, 128));
-    mTexture.loadFromImage(img);
+    (void)mTexture.loadFromImage(img); // (void) убирает warning C4834
     mSprite.setTexture(mTexture, true);
 }
 
+// РЕШЕНИЕ LNK2001: Добавлены недостающие методы
 void FloorChomper::update(sf::Time deltaTime) {}
+void FloorChomper::draw(sf::RenderTarget& target) const {
+    target.draw(mSprite);
+}
 
 void FloorChomper::update(sf::Time deltaTime, sf::Vector2f playerPos) {
     mPosition.x += mMoveDirection * mSpeed * deltaTime.asSeconds();
     mSprite.setPosition(mPosition);
 }
 
-void FloorChomper::draw(sf::RenderTarget& target) const {
-    target.draw(mSprite);
-}
 
-
-// FlyingChomper
+// ==========================================
+// FlyingChomper (Оранжевый летающий)
+// ==========================================
 FlyingChomper::FlyingChomper(sf::Vector2f position)
     : Enemy(position, 20.f, 1.f)
     , mHoverTimer(0.f)
@@ -62,11 +68,12 @@ FlyingChomper::FlyingChomper(sf::Vector2f position)
     , mShootCooldown(sf::seconds(3.f))
 {
     sf::Image img({ 45u, 45u }, sf::Color(255, 165, 0));
-    mTexture.loadFromImage(img);
+    (void)mTexture.loadFromImage(img); // (void) убирает warning C4834
     mSprite.setTexture(mTexture, true);
     mShootTimer = sf::seconds(1.5f);
 }
 
+// РЕШЕНИЕ LNK2001: Добавлены недостающие методы
 void FlyingChomper::update(sf::Time deltaTime) {}
 
 void FlyingChomper::update(sf::Time deltaTime, sf::Vector2f playerPos) {
