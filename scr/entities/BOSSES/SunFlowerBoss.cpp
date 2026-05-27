@@ -4,7 +4,7 @@
 #include <algorithm>
 
 SunflowerBoss::SunflowerBoss(sf::Vector2f position)
-    : Enemy(position, 3500.f, 1.f)
+    : Enemy(position, 10000.f, 1.f)
     , mBasePosition(position)
 {
     if (!mTexture.loadFromFile("assets/sunflower.png")) {
@@ -13,20 +13,15 @@ SunflowerBoss::SunflowerBoss(sf::Vector2f position)
     }
     mSprite.setTexture(mTexture, true);
 
-    // 1. Устанавливаем новый масштаб босса
     mSprite.setScale({ 1.7f, 1.7f });
 
-    // 2. Берем ГЛОБАЛЬНЫЕ размеры с учетом масштаба 1.6
     float actualHeight = mSprite.getGlobalBounds().size.y;
 
-    // 3. Ставим босса ровно на ту координату Y, которую передали из файла уровня.
-    // Если из testLevel.txt придет Y = 950 (пол), мы вычитаем высоту босса, 
-    // чтобы его "ноги" ровно касались земли.
+
     mPosition.y = position.y - actualHeight;
     mSprite.setPosition(mPosition);
     mBasePosition = mPosition;
 
-    // Инициализируем контекст автомата
     mContext.boss = this;
     mContext.player = nullptr;
 
@@ -47,14 +42,12 @@ void SunflowerBoss::update(sf::Time deltaTime) {}
 
 void SunflowerBoss::update(sf::Time deltaTime, sf::Vector2f playerPos) {
     float dt = deltaTime.asSeconds();
-    mLastPlayerPos = playerPos; // Сохраняем позицию игрока для стейтов атак
+    mLastPlayerPos = playerPos; 
 
-    // Обновляем и чистим снаряды босса
     for (auto& proj : mProjectiles) proj.update(deltaTime);
     mProjectiles.erase(std::remove_if(mProjectiles.begin(), mProjectiles.end(),
         [](const EnemyProjectile& p) { return !p.isActive(); }), mProjectiles.end());
 
-    // Обновляем и чистим миньонов (летунов от атаки лозами)
     for (auto& minion : mMinions) {
         minion->update(deltaTime, playerPos);
     }
@@ -63,7 +56,6 @@ void SunflowerBoss::update(sf::Time deltaTime, sf::Vector2f playerPos) {
 
     float distance = std::abs(playerPos.x - mPosition.x);
 
-    // Работа машины состояний (FSM)
     if (!mCurrentState || mCurrentState->isFinished()) {
         AttackID nextAttack = mBrain.chooseNextAttack(dt, distance, mHp / 1500.f);
 

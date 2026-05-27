@@ -149,7 +149,29 @@ void SunflowerVinesState::exit() {}
 // 5. АТАКА ГОЛОВОЙ 
 void SunflowerLungeState::enter() {
     float playerY = ctx.boss->getLastPlayerPos().y;
-    float targetLaneY = getClosestLaneY(playerY, ctx.boss->getBasePosition().y + 150);
+
+    float baseLaneY = ctx.boss->getBasePosition().y;
+
+    float topLane = baseLaneY + 300.f;
+    float bottomLane = baseLaneY + 450.f;  // нижняя линия
+
+    // ВАЖНО: фильтруем недоступные линии (барьер 510)
+    std::vector<float> validLanes;
+
+    if (topLane < 510.f) validLanes.push_back(topLane);
+    if (bottomLane < 510.f) validLanes.push_back(bottomLane);
+
+    // выбираем ближайшую допустимую
+    float targetLaneY = validLanes[0];
+    float bestDist = std::abs(playerY - targetLaneY);
+
+    for (float lane : validLanes) {
+        float d = std::abs(playerY - lane);
+        if (d < bestDist) {
+            bestDist = d;
+            targetLaneY = lane;
+        }
+    }
 
     sf::Vector2f pos = ctx.boss->getPosition();
     pos.y = targetLaneY;
@@ -157,13 +179,17 @@ void SunflowerLungeState::enter() {
 }
 void SunflowerLungeState::update(float dt) {
     BossState::update(dt);
+
     sf::Vector2f pos = ctx.boss->getPosition();
 
     float totalDuration = 3.6f;
 
+    float fixedY = pos.y;
+
     if (stateTimer < totalDuration) {
         float angle = stateTimer * (3.14159265f / totalDuration);
-        pos.x = ctx.boss->getBasePosition().x - std::sin(angle) * 1200.f;
+        pos.x = ctx.boss->getBasePosition().x - std::sin(angle) * 1000.f;
+        pos.y = fixedY;
     }
     else {
         pos.x = ctx.boss->getBasePosition().x;

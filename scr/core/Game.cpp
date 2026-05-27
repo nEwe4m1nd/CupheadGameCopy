@@ -10,7 +10,8 @@ const sf::Vector2u Resolution_HD(1280u, 720u);
 const sf::Vector2u Resolution_FHD(1920u, 1080u);
 
 Game::Game()
-    : Timer()
+    : mState(GameState::Playing)
+    , Timer()
     , timeSinceLastUpdate(sf::Time::Zero)
     , TimePerFrame(sf::seconds(1.f / 60.f))
     , mSpawnTimer(sf::Time::Zero)
@@ -72,7 +73,8 @@ Game::Game()
 }
 
 Game::Game(sf::Vector2u windowResolution)
-    : GameWindow(sf::VideoMode(windowResolution), "Cuphead Clone Project")
+    : mState(GameState::Playing)
+    , GameWindow(sf::VideoMode(windowResolution), "Cuphead Clone Project")
     , Timer()
     , timeSinceLastUpdate(sf::Time::Zero)
     , TimePerFrame(sf::seconds(1.f / 60.f))
@@ -244,18 +246,20 @@ void Game::run() {
 
 void Game::processEvents() {
     while (const std::optional<sf::Event> event = GameWindow.pollEvent()) {
+
         if (event->is<sf::Event::Closed>()) {
             GameWindow.close();
         }
+
         if (event->is<sf::Event::KeyPressed>()) {
 
             const auto* keyEvent = event->getIf<sf::Event::KeyPressed>();
 
-            if (keyEvent->code == sf::Keyboard::Key::R && mPlayer.isDead()) {
+            if (keyEvent->code == sf::Keyboard::Key::R &&
+                (mState == GameState::GameOver || mState == GameState::Victory)) {
                 restartGame();
             }
         }
-
     }
 }
 
@@ -336,17 +340,28 @@ void Game::handleCollisions() {
 
 void Game::update(sf::Time deltaTime) {
 
-    if (mPlayer.isDead()) {
+    // ===== STATE CHECK: GAME OVER / VICTORY =====
+    if (mState == GameState::GameOver || mState == GameState::Victory) {
         return;
     }
 
+    // ===== PLAYER DEATH CHECK =====
+    if (mPlayer.isDead() && mState == GameState::Playing) {
+        mState = GameState::GameOver;
+        return;
+    }
+
+    // ===== PLATFORMS =====
     for (auto& platform : mPlatforms) {
         platform.update(deltaTime);
     }
 
+    // ===== PLAYER =====
     mPlayer.update(deltaTime);
 
+    // ===== SPAWN LOGIC (ONLY IF NOT BOSS FIGHT) =====
     bool isBossFight = false;
+
     for (const auto& enemy : mEnemies) {
         if (dynamic_cast<SunflowerBoss*>(enemy.get()) != nullptr) {
             isBossFight = true;
@@ -356,55 +371,79 @@ void Game::update(sf::Time deltaTime) {
 
     if (!isBossFight) {
         mSpawnTimer += deltaTime;
+
         if (mSpawnTimer >= sf::seconds(4.0f)) {
             spawnRandomMinion();
             mSpawnTimer = sf::Time::Zero;
         }
     }
 
+    // ===== ENEMIES UPDATE =====
     for (auto& enemy : mEnemies) {
         enemy->update(deltaTime, mPlayer.getPosition());
     }
 
+    // ===== COLLISIONS =====
     handleCollisions();
 
+    // ===== REMOVE DEAD ENEMIES =====
     mEnemies.erase(std::remove_if(mEnemies.begin(), mEnemies.end(),
-        [](const std::unique_ptr<Enemy>& e) { return !e->isActive(); }), mEnemies.end());
+        [](const std::unique_ptr<Enemy>& e) {
+            return !e->isActive();
+        }), mEnemies.end());
 
+    // ===== VICTORY CHECK =====
+    bool hasEnemies = false;
+
+    for (const auto& enemy : mEnemies) {
+        if (enemy->isActive()) {
+            hasEnemies = true;
+            break;
+        }
+    }
+
+    if (!hasEnemies && mState == GameState::Playing) {
+        mState = GameState::Victory;
+        return;
+    }
+
+    // ===== CAMERA =====
     updateCamera(deltaTime);
 }
 
 void Game::render() {
 
     GameWindow.clear(sf::Color::Black);
-
     GameWindow.setView(mGameView);
 
-    // фон
-    GameWindow.draw(mBackgroundSprite);
+    // ===== WORLD RENDER (игровой мир) =====
+    if (mState == GameState::Playing) {
 
-    // платформы
-    for (auto& platform : mPlatforms) {
-        platform.draw(GameWindow);
+        // фон
+        GameWindow.draw(mBackgroundSprite);
+
+        // платформы
+        for (auto& platform : mPlatforms) {
+            platform.draw(GameWindow);
+        }
+
+        // враги
+        for (auto& enemy : mEnemies) {
+            enemy->draw(GameWindow);
+        }
+
+        // игрок
+        mPlayer.draw(GameWindow);
     }
-
-    // враги
-    for (auto& enemy : mEnemies) {
-        enemy->draw(GameWindow);
-    }
-
-    // игрок
-    mPlayer.draw(GameWindow);
 
     // ===== DEATH SCREEN =====
-    if (mPlayer.isDead()) {
+    if (mState == GameState::GameOver) {
 
         GameWindow.setView(GameWindow.getDefaultView());
 
         sf::RectangleShape overlay;
         overlay.setSize(sf::Vector2f(GameWindow.getSize()));
         overlay.setFillColor(sf::Color(0, 0, 0, 220));
-
         GameWindow.draw(overlay);
 
         if (mDeathText.has_value()) {
@@ -424,26 +463,64 @@ void Game::render() {
             GameWindow.draw(*mDeathText);
         }
 
-        if (mDeathText.has_value()) {
+        sf::Text restartText(mFont, "PRESS R TO RESTART", 48);
+        restartText.setFillColor(sf::Color::White);
 
-            sf::Text restartText(mFont, "PRESS R TO RESTART", 48);
+        sf::FloatRect restartBounds = restartText.getLocalBounds();
+        restartText.setOrigin({
+            restartBounds.position.x + restartBounds.size.x / 2.f,
+            restartBounds.position.y + restartBounds.size.y / 2.f
+            });
 
-            restartText.setFillColor(sf::Color::White);
+        restartText.setPosition({
+            GameWindow.getSize().x / 2.f,
+            GameWindow.getSize().y / 2.f + 80.f
+            });
 
-            sf::FloatRect restartBounds = restartText.getLocalBounds();
+        GameWindow.draw(restartText);
+    }
 
-            restartText.setOrigin({
-                restartBounds.position.x + restartBounds.size.x / 2.f,
-                restartBounds.position.y + restartBounds.size.y / 2.f
-                });
+    // ===== VICTORY SCREEN =====
+    if (mState == GameState::Victory) {
 
-            restartText.setPosition({
-                GameWindow.getSize().x / 2.f,
-                GameWindow.getSize().y / 2.f + 80.f
-                });
+        GameWindow.setView(GameWindow.getDefaultView());
 
-            GameWindow.draw(restartText);
-        }
+        sf::RectangleShape overlay;
+        overlay.setSize(sf::Vector2f(GameWindow.getSize()));
+        overlay.setFillColor(sf::Color(0, 0, 0, 220));
+        GameWindow.draw(overlay);
+
+        sf::Text winText(mFont, "YOU WIN!", 120);
+        winText.setFillColor(sf::Color::Yellow);
+
+        sf::FloatRect bounds = winText.getLocalBounds();
+        winText.setOrigin({
+            bounds.position.x + bounds.size.x / 2.f,
+            bounds.position.y + bounds.size.y / 2.f
+            });
+
+        winText.setPosition({
+            GameWindow.getSize().x / 2.f,
+            GameWindow.getSize().y / 2.f - 100.f
+            });
+
+        GameWindow.draw(winText);
+
+        sf::Text restartText(mFont, "PRESS R TO RESTART", 48);
+        restartText.setFillColor(sf::Color::White);
+
+        sf::FloatRect restartBounds = restartText.getLocalBounds();
+        restartText.setOrigin({
+            restartBounds.position.x + restartBounds.size.x / 2.f,
+            restartBounds.position.y + restartBounds.size.y / 2.f
+            });
+
+        restartText.setPosition({
+            GameWindow.getSize().x / 2.f,
+            GameWindow.getSize().y / 2.f + 80.f
+            });
+
+        GameWindow.draw(restartText);
     }
 
     GameWindow.display();
@@ -451,13 +528,14 @@ void Game::render() {
 
 void Game::restartGame() {
 
+    mState = GameState::Playing;
+
     mEnemies.clear();
     mPlatforms.clear();
 
     loadLevel("include/levels/testLevel.txt");
 
     mPlayer.reset();
-
     mPlayer.setPlatforms(mPlatforms);
 
     mPlayer.setPosition({ 0.f, 650.f });

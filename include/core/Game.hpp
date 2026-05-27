@@ -7,9 +7,16 @@
 #include <string>
 #include <memory> 
 
+enum class GameState {
+    Playing,
+    Victory,
+    GameOver
+};
+
+
 class Game {
 private:
-    bool mIsGameOver = false;
+    GameState mState;
     sf::Vector2u WindowResolution;
     sf::RenderWindow GameWindow;
     sf::Clock Timer;
