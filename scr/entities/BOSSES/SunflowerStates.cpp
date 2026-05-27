@@ -7,9 +7,9 @@
 #include <ctime>
 
 float getClosestLaneY(float playerY, float baseY) {
-    float topLane = baseY - 150.f; // Верхняя линия
+    float topLane = baseY - 450.f; // Верхняя линия
     float middleLane = baseY;         // Средняя линия
-    float bottomLane = baseY + 150.f; // Нижняя линия
+    float bottomLane = baseY + 450.f; // Нижняя линия
 
     float distTop = std::abs(playerY - topLane);
     float distMid = std::abs(playerY - middleLane);
@@ -17,7 +17,7 @@ float getClosestLaneY(float playerY, float baseY) {
 
     if (distTop < distMid && distTop < distBot) return topLane;
     if (distBot < distMid && distBot < distTop) return bottomLane;
-    return middleLane; // Если ближе всего к центру
+    return middleLane;
 }
 
 
@@ -108,7 +108,6 @@ void SunflowerBoomerangState::enter() {
 void SunflowerBoomerangState::update(float dt) {
     BossState::update(dt);
 
-    // Ждем, пока улетит за левый край экрана
     if (stateTimer > 2.5f && !returningPhase) {
         returningPhase = true;
 
@@ -122,7 +121,7 @@ void SunflowerBoomerangState::update(float dt) {
 }
 void SunflowerBoomerangState::exit() {}
 
-// 4. ЛОЗЫ (Выросли -> оставили миньона -> уползли)
+// 4. ЛОЗЫ 
 void SunflowerVinesState::enter() {
     vinesSpawned = 0;
     vineTimer = 0.0f;
@@ -153,15 +152,13 @@ void SunflowerLungeState::enter() {
     float baseLaneY = ctx.boss->getBasePosition().y;
 
     float topLane = baseLaneY + 300.f;
-    float bottomLane = baseLaneY + 450.f;  // нижняя линия
+    float bottomLane = baseLaneY + 450.f;
 
-    // ВАЖНО: фильтруем недоступные линии (барьер 510)
     std::vector<float> validLanes;
 
     if (topLane < 510.f) validLanes.push_back(topLane);
     if (bottomLane < 510.f) validLanes.push_back(bottomLane);
 
-    // выбираем ближайшую допустимую
     float targetLaneY = validLanes[0];
     float bestDist = std::abs(playerY - targetLaneY);
 

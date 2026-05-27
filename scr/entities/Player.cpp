@@ -21,9 +21,8 @@ Player::Player()
         sf::Image img({ 50u, 80u }, sf::Color::Blue);
         (void)mTexture.loadFromImage(img);
     }
-    // ВАЖНО: Перепривязываем текстуру к спрайту явно
     mSprite.setTexture(mTexture, true);
-    mSprite.setScale({ 1.5f, 1.5f });
+    mSprite.setScale({ 1.0f, 1.3f });
 
 }
 
@@ -137,7 +136,6 @@ void Player::update(sf::Time deltaTime) {
     }
 
     // прыжок
-    // Находим блок прыжка в Player::update
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) {
         if (mIsGrounded || mCanGhostJump) {
             mVelocityY = JUMP_FORCE * 1.1f; 
@@ -147,7 +145,6 @@ void Player::update(sf::Time deltaTime) {
         }
     }
 
-    // Находим блок гравитации в Player::update
     if (!mIsGrounded && !mIsDashing) {
         if (mVelocityY < 0.f) {
 
@@ -208,51 +205,41 @@ void Player::update(sf::Time deltaTime) {
 
     handleShooting(deltaTime);
 
-    const float SNAP_Y = 15.f;
+    const float SNAP_Y = 21.f;
+    const float PLATFORM_SINK = 20.f;
 
     mPosition.y += mVelocityY * dt;
     mSprite.setPosition(mPosition);
 
     bool touchedGroundThisFrame = false;
 
-    if (mPlatforms != nullptr) {
-        for (const auto& platform : *mPlatforms) {
-
+    if (mPlatforms != nullptr)
+    {
+        for (const auto& platform : *mPlatforms)
+        {
             sf::FloatRect playerBounds = mSprite.getGlobalBounds();
             sf::FloatRect platformBounds = platform.getBounds();
+
             auto intersection = playerBounds.findIntersection(platformBounds);
+            if (!intersection.has_value())
+                continue;
 
-            if (!intersection.has_value()) continue;
+            float playerBottom = playerBounds.position.y + playerBounds.size.y;
+            float platformTop = platformBounds.position.y;
+            float verticalDist = platformTop - playerBottom;
 
-            // ===== ONE-WAY DROP =====
             bool wantsDrop = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down);
 
-            if (platform.getType() == PlatformType::OneWay &&
-                wantsDrop &&
-                mVelocityY >= 0.f) {
-                continue;
-            }
+            if (platform.getType() == PlatformType::OneWay)
+            {
+                if (mVelocityY >= 0.f && wantsDrop)
+                    continue;
 
-            // ===== DEATH PLATFORM =====
-            if (platform.getType() == PlatformType::Death) {
-                takeDamage(1);
-                mPosition = { 200.f, 100.f };
-                mVelocityY = 0.f;
-                mIsDashing = false;
-                mSprite.setPosition(mPosition);
-                break;
-            }
-
-            // ===== ONE-WAY PLATFORM =====
-            if (platform.getType() == PlatformType::OneWay) {
-
-                float playerBottom = playerBounds.position.y + playerBounds.size.y;
-                float platformTop = platformBounds.position.y;
-
-                float distance = platformTop - playerBottom;
-
-                if (mVelocityY >= 0.f && distance >= -SNAP_Y && distance <= SNAP_Y) {
-                    mPosition.y = platformTop - playerBounds.size.y;
+                if (mVelocityY >= 0.f &&
+                    verticalDist >= -SNAP_Y &&
+                    verticalDist <= SNAP_Y)
+                {
+                    mPosition.y = platformTop - playerBounds.size.y + PLATFORM_SINK;
                     mVelocityY = 0.f;
                     touchedGroundThisFrame = true;
                     mSprite.setPosition(mPosition);
@@ -261,31 +248,28 @@ void Player::update(sf::Time deltaTime) {
                 continue;
             }
 
-            // ===== SOLID PLATFORM =====
-            float playerBottom = playerBounds.position.y + playerBounds.size.y;
-            float platformTop = platformBounds.position.y;
-
-            float verticalDist = platformTop - playerBottom;
-
-            // ===== SNAP LOGIC =====
-            if (mVelocityY >= 0.f && verticalDist >= -SNAP_Y && verticalDist <= SNAP_Y) {
-                mPosition.y = platformTop - playerBounds.size.y;
+            if (mVelocityY >= 0.f &&
+                verticalDist >= -SNAP_Y &&
+                verticalDist <= SNAP_Y)
+            {
+                mPosition.y = platformTop - playerBounds.size.y + PLATFORM_SINK;
                 mVelocityY = 0.f;
                 touchedGroundThisFrame = true;
                 mSprite.setPosition(mPosition);
                 continue;
             }
 
-            // ===== FALLBACK RESOLUTION =====
             float playerCenterY = playerBounds.position.y + playerBounds.size.y / 2.f;
             float platformCenterY = platformBounds.position.y + platformBounds.size.y / 2.f;
 
-            if (playerCenterY < platformCenterY) {
+            if (playerCenterY < platformCenterY)
+            {
                 mPosition.y -= intersection->size.y;
                 if (mVelocityY > 0.f) mVelocityY = 0.f;
                 touchedGroundThisFrame = true;
             }
-            else {
+            else
+            {
                 mPosition.y += intersection->size.y;
                 if (mVelocityY < 0.f) mVelocityY = 0.f;
             }

@@ -4,7 +4,7 @@
 #include <optional>
 #include <fstream>
 #include <sstream>
-#include <algorithm> // Для std::remove_if
+#include <algorithm>
 
 const sf::Vector2u Resolution_HD(1280u, 720u);
 const sf::Vector2u Resolution_FHD(1920u, 1080u);
@@ -20,18 +20,14 @@ Game::Game()
 {
     sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
 
-    // Создаем обычное окно под разрешение рабочего стола
     GameWindow.create(desktopMode, "Cuphead Game", sf::Style::Default);
     GameWindow.setFramerateLimit(60);
 
-    // Размер области видимости камеры на экране
     mGameView.setSize({ 1920.f, 1080.f });
 
-    // Заменяем mLevelLimits на размер одного экрана
     mLevelLimits = { 1920.f, 1080.f };
     mGameView.setCenter({ 1920.f / 2.f, 1080.f / 2.f });
 
-    // 1. Загрузка фоновой текстуры
     if (mBackgroundTexture.loadFromFile("assets/forest_bg.jpg")) {
         mBackgroundSprite.setTexture(mBackgroundTexture, true);
 
@@ -41,7 +37,6 @@ Game::Game()
         mBackgroundSprite.setScale({ scaleX, scaleY });
     }
 
-    // 2. Централизованная загрузка текстур для платформ во избежание Assertion failed
     if (!mTextureGround.loadFromFile("assets/ground.png")) {
         std::cerr << "Failed to load assets/ground.png" << std::endl;
     }
@@ -62,11 +57,9 @@ Game::Game()
         mDeathText->setPosition({ 650.f, 400.f });
     }
 
-    // Загрузка уровня и передача платформ игроку
     loadLevel("include/levels/testLevel.txt");
     mPlayer.setPlatforms(mPlatforms);
 
-    // ИСПРАВЛЕНИЕ: Появление игрока на земле в начале битвы
     mPlayer.setPosition({ 0, 650 });
 
     srand(static_cast<unsigned>(time(nullptr)));
@@ -95,7 +88,6 @@ Game::Game(sf::Vector2u windowResolution)
         mBackgroundSprite.setScale({ scaleX, scaleY });
     }
 
-    // Централизованная загрузка текстур для платформ во избежание Assertion failed
     if (!mTextureGround.loadFromFile("assets/ground.png")) {
         std::cerr << "Failed to load assets/ground.png" << std::endl;
     }
@@ -120,7 +112,6 @@ Game::Game(sf::Vector2u windowResolution)
     loadLevel("include/levels/testLevel.txt");
     mPlayer.setPlatforms(mPlatforms);
 
-    // ИСПРАВЛЕНИЕ: Появление игрока на земле в начале битвы
     mPlayer.setPosition({ 0.f, 650.f });
 
     srand(static_cast<unsigned>(time(nullptr)));
@@ -340,26 +331,21 @@ void Game::handleCollisions() {
 
 void Game::update(sf::Time deltaTime) {
 
-    // ===== STATE CHECK: GAME OVER / VICTORY =====
     if (mState == GameState::GameOver || mState == GameState::Victory) {
         return;
     }
 
-    // ===== PLAYER DEATH CHECK =====
     if (mPlayer.isDead() && mState == GameState::Playing) {
         mState = GameState::GameOver;
         return;
     }
 
-    // ===== PLATFORMS =====
     for (auto& platform : mPlatforms) {
         platform.update(deltaTime);
     }
 
-    // ===== PLAYER =====
     mPlayer.update(deltaTime);
 
-    // ===== SPAWN LOGIC (ONLY IF NOT BOSS FIGHT) =====
     bool isBossFight = false;
 
     for (const auto& enemy : mEnemies) {
@@ -378,21 +364,17 @@ void Game::update(sf::Time deltaTime) {
         }
     }
 
-    // ===== ENEMIES UPDATE =====
     for (auto& enemy : mEnemies) {
         enemy->update(deltaTime, mPlayer.getPosition());
     }
 
-    // ===== COLLISIONS =====
     handleCollisions();
 
-    // ===== REMOVE DEAD ENEMIES =====
     mEnemies.erase(std::remove_if(mEnemies.begin(), mEnemies.end(),
         [](const std::unique_ptr<Enemy>& e) {
             return !e->isActive();
         }), mEnemies.end());
 
-    // ===== VICTORY CHECK =====
     bool hasEnemies = false;
 
     for (const auto& enemy : mEnemies) {
@@ -407,7 +389,6 @@ void Game::update(sf::Time deltaTime) {
         return;
     }
 
-    // ===== CAMERA =====
     updateCamera(deltaTime);
 }
 
@@ -416,7 +397,6 @@ void Game::render() {
     GameWindow.clear(sf::Color::Black);
     GameWindow.setView(mGameView);
 
-    // ===== WORLD RENDER (игровой мир) =====
     if (mState == GameState::Playing) {
 
         // фон
@@ -436,7 +416,6 @@ void Game::render() {
         mPlayer.draw(GameWindow);
     }
 
-    // ===== DEATH SCREEN =====
     if (mState == GameState::GameOver) {
 
         GameWindow.setView(GameWindow.getDefaultView());
@@ -480,7 +459,6 @@ void Game::render() {
         GameWindow.draw(restartText);
     }
 
-    // ===== VICTORY SCREEN =====
     if (mState == GameState::Victory) {
 
         GameWindow.setView(GameWindow.getDefaultView());
