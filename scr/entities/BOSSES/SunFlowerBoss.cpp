@@ -4,7 +4,7 @@
 #include <algorithm>
 
 SunflowerBoss::SunflowerBoss(sf::Vector2f position)
-    : Enemy(position, 1500.f, 1.f)
+    : Enemy(position, 3500.f, 1.f)
     , mBasePosition(position)
 {
     if (!mTexture.loadFromFile("assets/sunflower.png")) {

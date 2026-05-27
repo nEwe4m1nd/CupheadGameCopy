@@ -50,6 +50,17 @@ Game::Game()
     mTextureBullet.loadFromFile("assets/peashot.png");
     mTextureSuper.loadFromFile("assets/peashot_EX.png");
 
+    if (!mFont.openFromFile("assets/fonts/Gatok.otf")) {
+        std::cerr << "Failed to load font" << std::endl;
+    }
+    else {
+        mDeathText.emplace(mFont, "YOU DIED", 120);
+
+        mDeathText->setFillColor(sf::Color::Red);
+        mDeathText->setStyle(sf::Text::Bold);
+        mDeathText->setPosition({ 650.f, 400.f });
+    }
+
     // Загрузка уровня и передача платформ игроку
     loadLevel("include/levels/testLevel.txt");
     mPlayer.setPlatforms(mPlatforms);
@@ -90,6 +101,17 @@ Game::Game(sf::Vector2u windowResolution)
         std::cerr << "Failed to load assets/leaf.png" << std::endl;
     }
 
+    if (!mFont.openFromFile("assets/fonts/Gatok.otf")) {
+        std::cerr << "Failed to load font" << std::endl;
+    }
+    else {
+        mDeathText.emplace(mFont, "YOU DIED", 120);
+
+        mDeathText->setFillColor(sf::Color::Red);
+        mDeathText->setStyle(sf::Text::Bold);
+        mDeathText->setPosition({ 650.f, 400.f });
+    }
+
     GameWindow.setFramerateLimit(60);
     mGameView.setSize(static_cast<sf::Vector2f>(windowResolution));
 
@@ -97,7 +119,7 @@ Game::Game(sf::Vector2u windowResolution)
     mPlayer.setPlatforms(mPlatforms);
 
     // ИСПРАВЛЕНИЕ: Появление игрока на земле в начале битвы
-    mPlayer.setPosition({ 0.f, 0.f });
+    mPlayer.setPosition({ 0.f, 650.f });
 
     srand(static_cast<unsigned>(time(nullptr)));
 }
@@ -225,6 +247,15 @@ void Game::processEvents() {
         if (event->is<sf::Event::Closed>()) {
             GameWindow.close();
         }
+        if (event->is<sf::Event::KeyPressed>()) {
+
+            const auto* keyEvent = event->getIf<sf::Event::KeyPressed>();
+
+            if (keyEvent->code == sf::Keyboard::Key::R && mPlayer.isDead()) {
+                restartGame();
+            }
+        }
+
     }
 }
 
@@ -304,6 +335,11 @@ void Game::handleCollisions() {
 }
 
 void Game::update(sf::Time deltaTime) {
+
+    if (mPlayer.isDead()) {
+        return;
+    }
+
     for (auto& platform : mPlatforms) {
         platform.update(deltaTime);
     }
@@ -339,24 +375,94 @@ void Game::update(sf::Time deltaTime) {
 }
 
 void Game::render() {
+
     GameWindow.clear(sf::Color::Black);
 
-    // Включаем единую игровую камеру для ВСЕГО
     GameWindow.setView(mGameView);
 
-    // Рисуем фон первым
+    // фон
     GameWindow.draw(mBackgroundSprite);
 
-    mPlayer.draw(GameWindow);
-
-    // Рисуем всё остальное поверх фона
+    // платформы
     for (auto& platform : mPlatforms) {
         platform.draw(GameWindow);
     }
 
+    // враги
     for (auto& enemy : mEnemies) {
         enemy->draw(GameWindow);
     }
 
+    // игрок
+    mPlayer.draw(GameWindow);
+
+    // ===== DEATH SCREEN =====
+    if (mPlayer.isDead()) {
+
+        GameWindow.setView(GameWindow.getDefaultView());
+
+        sf::RectangleShape overlay;
+        overlay.setSize(sf::Vector2f(GameWindow.getSize()));
+        overlay.setFillColor(sf::Color(0, 0, 0, 220));
+
+        GameWindow.draw(overlay);
+
+        if (mDeathText.has_value()) {
+
+            sf::FloatRect bounds = mDeathText->getLocalBounds();
+
+            mDeathText->setOrigin({
+                bounds.position.x + bounds.size.x / 2.f,
+                bounds.position.y + bounds.size.y / 2.f
+                });
+
+            mDeathText->setPosition({
+                GameWindow.getSize().x / 2.f,
+                GameWindow.getSize().y / 2.f - 100.f
+                });
+
+            GameWindow.draw(*mDeathText);
+        }
+
+        if (mDeathText.has_value()) {
+
+            sf::Text restartText(mFont, "PRESS R TO RESTART", 48);
+
+            restartText.setFillColor(sf::Color::White);
+
+            sf::FloatRect restartBounds = restartText.getLocalBounds();
+
+            restartText.setOrigin({
+                restartBounds.position.x + restartBounds.size.x / 2.f,
+                restartBounds.position.y + restartBounds.size.y / 2.f
+                });
+
+            restartText.setPosition({
+                GameWindow.getSize().x / 2.f,
+                GameWindow.getSize().y / 2.f + 80.f
+                });
+
+            GameWindow.draw(restartText);
+        }
+    }
+
     GameWindow.display();
+}
+
+void Game::restartGame() {
+
+    mEnemies.clear();
+    mPlatforms.clear();
+
+    loadLevel("include/levels/testLevel.txt");
+
+    mPlayer.reset();
+
+    mPlayer.setPlatforms(mPlatforms);
+
+    mPlayer.setPosition({ 0.f, 650.f });
+
+    mGameView.setCenter({ 1920.f / 2.f, 1080.f / 2.f });
+
+    mSpawnTimer = sf::Time::Zero;
 }

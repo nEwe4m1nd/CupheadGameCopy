@@ -45,6 +45,7 @@ private:
     int mHp = 3;
     bool mIsInvincible = false;
     sf::Time mInvincibilityTimer = sf::Time::Zero;
+    bool mIsDead = false;
 
 public:
     Player();
@@ -63,21 +64,26 @@ public:
     std::vector<SuperAttack>& getSuperAttacks() { return mSuperAttacks; }
     sf::FloatRect getBounds() const { return mSprite.getGlobalBounds(); }
 
-    void takeDamage(int amount) {
-        if (!mIsInvincible) {
-            mHp -= amount;
+    void takeDamage(int damage) {
+        if (mIsInvincible || mIsDead)
+            return;
 
-            if (mHp <= 0) {
-                mPosition = { 200.f, 100.f };
-                mVelocityY = 0.f;
-                mIsDashing = false;
-                mHp = 3;
-            }
+        mHp -= damage;
 
-            mIsInvincible = true;
-            mInvincibilityTimer = sf::Time::Zero;
+        mIsInvincible = true;
+        mInvincibilityTimer = sf::Time::Zero;
+
+        if (mHp <= 0) {
+            mHp = 0;
+            mIsDead = true;
         }
     }
+
+    bool isDead() const;
+    int getHealth() const;
+
+public:
+    void reset();
 
 private:
     void handleShooting(sf::Time deltaTime);

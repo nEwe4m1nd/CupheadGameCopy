@@ -42,6 +42,8 @@ private:
     sf::Texture mTextureBullet;
     sf::Texture mTextureSuper;
 
+    sf::Font mFont;
+    std::optional<sf::Text> mDeathText;
 public:
     Game();
     Game(sf::Vector2u WindowResolution);
@@ -61,4 +63,6 @@ private:
 
     void spawnRandomMinion();
     void handleCollisions();
+
+    void restartGame();
 };

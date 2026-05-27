@@ -31,6 +31,14 @@ void Player::setPlatforms(const std::vector<Platform>& platforms) {
     mPlatforms = &platforms;
 }
 
+bool Player::isDead() const {
+    return mIsDead;
+}
+
+int Player::getHealth() const {
+    return mHp;
+}
+
 
 void Player::update(sf::Time deltaTime) {
     float dt = deltaTime.asSeconds();
@@ -202,7 +210,6 @@ void Player::update(sf::Time deltaTime) {
 
     mPosition.y += mVelocityY * dt;
     mSprite.setPosition(mPosition);
-    std::cout << mPosition.x << " " << mPosition.y;
     bool touchedGroundThisFrame = false;
 
     if (mPlatforms != nullptr) {
@@ -332,4 +339,31 @@ void Player::draw(sf::RenderTarget& target) const {
     for (const auto& super : mSuperAttacks) {
         super.draw(target);
     }
+}
+
+void Player::reset() {
+
+    mHp = 3;
+
+    mIsDead = false;
+
+    mIsInvincible = false;
+
+    mVelocityY = 0.f;
+
+    mBullets.clear();
+
+    mSuperAttacks.clear();
+
+    mSuperMeter = 0.f;
+
+    mIsGrounded = false;
+
+    mCanGhostJump = false;
+
+    mIsDashing = false;
+
+    mCanDash = true;
+
+    mSprite.setColor(sf::Color::White);
 }
