@@ -4,6 +4,7 @@
 #include <optional>
 #include <fstream>
 #include <sstream>
+#include <algorithm> // Для std::remove_if
 
 const sf::Vector2u Resolution_HD(1280u, 720u);
 const sf::Vector2u Resolution_FHD(1920u, 1080u);
@@ -24,23 +25,36 @@ Game::Game()
 
     // Размер области видимости камеры на экране
     mGameView.setSize({ 1920.f, 1080.f });
+
+    // Заменяем mLevelLimits на размер одного экрана
+    mLevelLimits = { 1920.f, 1080.f };
     mGameView.setCenter({ 1920.f / 2.f, 1080.f / 2.f });
 
-    // ОШИБКА БЫЛА ТУТ: Границы уровня должны быть шире, чем экран (1920),
-    // чтобы камера могла ехать вправо. Поставим длину 3000 (как mLevelWidth в хэдере)
-    mLevelLimits = { 3000.f, 1080.f };
-
-    // ЯВНО загружаем и натягиваем текстуру на всю длину и высоту игрового мира
+    // 1. Загрузка фоновой текстуры
     if (mBackgroundTexture.loadFromFile("assets/forest_bg.jpg")) {
-        mBackgroundTexture.setRepeated(true);
-        mBackgroundSprite.setTexture(mBackgroundTexture);
+        mBackgroundSprite.setTexture(mBackgroundTexture, true);
 
-        // Натягиваем текстуру от 0 до 3000 по ширине и до 1080 по высоте камеры
-        mBackgroundSprite.setTextureRect(sf::IntRect({ 0, 0 }, { 3000, 1080 }));
+        sf::Vector2u textureSize = mBackgroundTexture.getSize();
+        float scaleX = 1920.f / textureSize.x;
+        float scaleY = 1080.f / textureSize.y;
+        mBackgroundSprite.setScale({ scaleX, scaleY });
     }
 
+    // 2. Централизованная загрузка текстур для платформ во избежание Assertion failed
+    if (!mTextureGround.loadFromFile("assets/ground.png")) {
+        std::cerr << "Failed to load assets/ground.png" << std::endl;
+    }
+    if (!mTextureLeaf.loadFromFile("assets/leaf.png")) {
+        std::cerr << "Failed to load assets/leaf.png" << std::endl;
+    }
+
+    // Загрузка уровня и передача платформ игроку
     loadLevel("include/levels/testLevel.txt");
     mPlayer.setPlatforms(mPlatforms);
+
+    // ИСПРАВЛЕНИЕ: Появление игрока на земле в начале битвы
+    mPlayer.setPosition({ 300.f, 850.f });
+
     srand(static_cast<unsigned>(time(nullptr)));
 }
 
@@ -54,24 +68,39 @@ Game::Game(sf::Vector2u windowResolution)
     , mBackgroundTexture()
     , mBackgroundSprite(mBackgroundTexture)
 {
+    mLevelLimits = { 1920.f, 1080.f };
+    mGameView.setCenter({ 1920.f / 2.f, 1080.f / 2.f });
+
     if (mBackgroundTexture.loadFromFile("assets/forest_bg.jpg")) {
-        mBackgroundSprite.setTexture(mBackgroundTexture);
+        mBackgroundSprite.setTexture(mBackgroundTexture, true);
 
         sf::Vector2u textureSize = mBackgroundTexture.getSize();
         float scaleX = 1920.f / textureSize.x;
         float scaleY = 1080.f / textureSize.y;
-
         mBackgroundSprite.setScale({ scaleX, scaleY });
     }
+
+    // Централизованная загрузка текстур для платформ во избежание Assertion failed
+    if (!mTextureGround.loadFromFile("assets/ground.png")) {
+        std::cerr << "Failed to load assets/ground.png" << std::endl;
+    }
+    if (!mTextureLeaf.loadFromFile("assets/leaf.png")) {
+        std::cerr << "Failed to load assets/leaf.png" << std::endl;
+    }
+
     GameWindow.setFramerateLimit(60);
     mGameView.setSize(static_cast<sf::Vector2f>(windowResolution));
+
     loadLevel("include/levels/testLevel.txt");
     mPlayer.setPlatforms(mPlatforms);
+
+    // ИСПРАВЛЕНИЕ: Появление игрока на земле в начале битвы
+    mPlayer.setPosition({ 300.f, 850.f });
+
     srand(static_cast<unsigned>(time(nullptr)));
 }
 
 Game::~Game() {}
-
 
 void Game::loadLevel(const std::string& filename) {
     std::ifstream file(filename);
@@ -81,7 +110,7 @@ void Game::loadLevel(const std::string& filename) {
     }
 
     mPlatforms.clear();
-    mEnemies.clear(); // Очищаем старых врагов перед загрузкой
+    mEnemies.clear();
 
     std::string line;
     while (std::getline(file, line)) {
@@ -90,18 +119,22 @@ void Game::loadLevel(const std::string& filename) {
         std::stringstream ss(line);
         std::string identifier;
 
-        // Читаем первое слово в строке
         if (ss >> identifier) {
-
-            // 1. ПАРСИМ ПЛАТФОРМЫ (если строка начинается с "0", "1" или "2")
-            if (identifier == "0" || identifier == "1" || identifier == "2") {
+            // 1. ПАРСИМ ПЛАТФОРМЫ
+            if (identifier == "0" || identifier == "1" || identifier == "2" || identifier == "3") {
                 int typeInt = std::stoi(identifier);
                 float x, y, w, h, offX, offY, speed;
 
                 if (ss >> x >> y >> w >> h >> offX >> offY >> speed) {
                     PlatformType type = static_cast<PlatformType>(typeInt);
+
+                    // Выбираем текстуру в зависимости от типа платформы
+                    // (Предполагается, что конструктор Platform теперь принимает ссылку на текстуру)
+
+                    const sf::Texture& currentTex = (type == PlatformType::Solid) ? mTextureGround : mTextureLeaf;
+
                     mPlatforms.emplace_back(
-                        sf::Vector2f(x, y), sf::Vector2f(w, h), type, sf::Vector2f(offX, offY), speed
+                        sf::Vector2f(x, y), sf::Vector2f(w, h), type, currentTex, sf::Vector2f(offX, offY), speed
                     );
                 }
             }
@@ -138,7 +171,6 @@ void Game::loadLevel(const std::string& filename) {
         }
     }
 
-    // Если на уровне есть босс, стираем из вектора всех, кто боссом не является
     if (hasBoss) {
         mEnemies.erase(std::remove_if(mEnemies.begin(), mEnemies.end(),
             [](const std::unique_ptr<Enemy>& e) {
@@ -210,6 +242,7 @@ void Game::handleCollisions() {
         if (!enemy->isActive()) continue;
         sf::FloatRect enemyBounds = enemy->getBounds();
 
+        // Коллизия пуль игрока с врагами
         for (auto& bullet : bullets) {
             if (bullet.isActive() && bullet.getBounds().findIntersection(enemyBounds).has_value()) {
                 enemy->takeDamage(bullet.getDamage());
@@ -217,20 +250,24 @@ void Game::handleCollisions() {
             }
         }
 
+        // Коллизия супер-атак игрока с врагами
         for (auto& super : supers) {
             if (super.isActive() && super.getBounds().findIntersection(enemyBounds).has_value()) {
                 enemy->takeDamage(super.getDamage());
             }
         }
 
+        // ИСПРАВЛЕНИЕ КОЛЛИЗИЙ: Игрок просто получает урон и проходит СКВОЗЬ врагов (триггерная коллизия)
         if (playerBounds.findIntersection(enemyBounds).has_value()) {
             mPlayer.takeDamage(1);
 
+            // Если это обычный миньон, он исчезает при столкновении
             if (dynamic_cast<SunflowerBoss*>(enemy.get()) == nullptr) {
                 enemy->destroy();
             }
         }
 
+        // Снаряды летающего миньона
         FlyingChomper* flyer = dynamic_cast<FlyingChomper*>(enemy.get());
         if (flyer != nullptr) {
             auto& enemyProjectiles = flyer->getProjectiles();
@@ -242,27 +279,22 @@ void Game::handleCollisions() {
             }
         }
 
+        // Снаряды босса и логика парирования
         SunflowerBoss* boss = dynamic_cast<SunflowerBoss*>(enemy.get());
         if (boss != nullptr) {
             auto& bossProjectiles = boss->getProjectiles();
-            sf::FloatRect playerBounds = mPlayer.getBounds();
 
             for (auto& proj : bossProjectiles) {
                 if (proj.isActive() && proj.getBounds().findIntersection(playerBounds).has_value()) {
-
-                    // Если пуля РОЗОВАЯ и игрок ПАДАЕТ ВНИЗ (шлепок/двойной прыжок)
+                    // Если пуля РОЗОВАЯ и игрок движется вниз (парирование)
                     if (proj.isParryable() && mPlayer.getVelocityY() > 0.f) {
-                        // ПАРИРОВАНИЕ УСПЕШНО
-                        // mPlayer.heal(1);       // Раскомментируй, если у тебя есть метод лечения
-                        mPlayer.setVelocityY(-400.f); // Подкидываем игрока обратно в воздух (отскок)
-                        proj.destroy();           // Розовая пуля исчезает
+                        mPlayer.setVelocityY(-400.f); // Отскок вверх
+                        proj.destroy();
                     }
                     else {
-                        // ОБЫЧНОЕ ПОПАДАНИЕ (пуля не розовая ИЛИ игрок просто в неё врезался)
                         mPlayer.takeDamage(static_cast<int>(proj.getDamage()));
-                        proj.destroy();           // Пуля исчезает после нанесения урона
+                        proj.destroy();
                     }
-
                 }
             }
         }
@@ -285,7 +317,7 @@ void Game::update(sf::Time deltaTime) {
     }
 
     if (!isBossFight) {
-        mSpawnTimer += deltaTime; 
+        mSpawnTimer += deltaTime;
         if (mSpawnTimer >= sf::seconds(4.0f)) {
             spawnRandomMinion();
             mSpawnTimer = sf::Time::Zero;
@@ -304,17 +336,16 @@ void Game::update(sf::Time deltaTime) {
     updateCamera(deltaTime);
 }
 
-
 void Game::render() {
     GameWindow.clear(sf::Color::Black);
 
-    // 1. Рисуем фон в "координатах окна" (без учета игровой камеры)
-    GameWindow.setView(GameWindow.getDefaultView());
-    GameWindow.draw(mBackgroundSprite);
-
-    // 2. Включаем игровую камеру для всех остальных объектов (игрок, босс, платформы)
+    // Включаем единую игровую камеру для ВСЕГО
     GameWindow.setView(mGameView);
 
+    // Рисуем фон первым
+    GameWindow.draw(mBackgroundSprite);
+
+    // Рисуем всё остальное поверх фона
     for (auto& platform : mPlatforms) {
         platform.draw(GameWindow);
     }

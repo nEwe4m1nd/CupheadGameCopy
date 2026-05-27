@@ -1,7 +1,11 @@
 #include "core/Platform.hpp"
 #include <cmath>
 
-Platform::Platform(sf::Vector2f position, sf::Vector2f size, PlatformType type, sf::Vector2f moveOffset, float speed)
+#include "core/Platform.hpp"
+#include <cmath>
+
+Platform::Platform(sf::Vector2f position, sf::Vector2f size, PlatformType type,
+    const sf::Texture& texture, sf::Vector2f moveOffset, float speed)
     : mType(type)
     , mStartPosition(position)
     , mEndPosition(position + moveOffset)
@@ -12,21 +16,16 @@ Platform::Platform(sf::Vector2f position, sf::Vector2f size, PlatformType type, 
     mShape.setPosition(position);
     mShape.setSize(size);
 
+    // Логика цвета по умолчанию (если текстура вдруг не сработает или для отладки)
     if (mType == PlatformType::Solid)   mShape.setFillColor(sf::Color(100, 100, 100));
     if (mType == PlatformType::OneWay)  mShape.setFillColor(sf::Color(0, 255, 0));
     if (mType == PlatformType::Death)   mShape.setFillColor(sf::Color(255, 0, 0));
 
-    if (mType == PlatformType::OneWay) {
-        if (mTexture.loadFromFile("assets/leaf.png")) {
-            mShape.setTexture(&mTexture);
-            mShape.setFillColor(sf::Color::White); 
-        }
-    }
-    else if (mType == PlatformType::Solid) {
-        if (mTexture.loadFromFile("assets/ground.png")) {
-            mShape.setTexture(&mTexture);
-            mShape.setFillColor(sf::Color::White);
-        }
+    // Натягиваем текстуру, которую передал класс Game через центральный менеджер
+    if (mType == PlatformType::Solid || mType == PlatformType::OneWay) {
+        // Передаем true вторым аргументом, чтобы сбросить Rect под размер текстуры
+        mShape.setTexture(&texture, true);
+        mShape.setFillColor(sf::Color::White); // Сбрасываем фильтр цвета в белый, чтобы картинка была цветной
     }
 }
 

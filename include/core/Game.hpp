@@ -31,6 +31,14 @@ private:
     sf::Texture mBackgroundTexture;
     sf::Sprite mBackgroundSprite;
 
+    sf::Texture mTextureGround;
+    sf::Texture mTextureLeaf;
+    sf::Texture mTexturePlayer;
+    sf::Texture mTextureSunflower;
+    sf::Texture mTextureHoming;
+    sf::Texture mTextureFloor;
+    sf::Texture mTextureFlying;
+
 public:
     Game();
     Game(sf::Vector2u WindowResolution);

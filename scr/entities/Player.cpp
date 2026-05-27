@@ -19,9 +19,9 @@ Player::Player()
 {
     if (!mTexture.loadFromFile("assets/player.png")) {
         sf::Image defaultImage({ 50u, 80u }, sf::Color::Cyan);
-        mTexture.loadFromImage(defaultImage);
     }
     mSprite.setTexture(mTexture, true);
+    mSprite.setScale({ 1.5f, 1.5f });
 }
 
 void Player::setPlatforms(const std::vector<Platform>& platforms) {
@@ -126,17 +126,26 @@ void Player::update(sf::Time deltaTime) {
     }
 
     // прыжок
+    // Находим блок прыжка в Player::update
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) {
         if (mIsGrounded || mCanGhostJump) {
-            mVelocityY = JUMP_FORCE;
+            mVelocityY = JUMP_FORCE * 1.225f; 
             mIsGrounded = false;
             mCanGhostJump = false;
             mIsDashing = false;
         }
     }
 
+    // Находим блок гравитации в Player::update
     if (!mIsGrounded && !mIsDashing) {
-        mVelocityY += GRAVITY * dt;
+        if (mVelocityY < 0.f) {
+
+            mVelocityY += (GRAVITY * 1.5f) * dt;
+        }
+        else {
+            // Падение вниз становится еще более тяжелым и быстрым
+            mVelocityY += (GRAVITY * 2.2f) * dt;
+        }
     }
 
 

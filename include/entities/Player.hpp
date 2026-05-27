@@ -14,8 +14,8 @@ private:
     float mVelocityY;
     bool mIsGrounded;
 
-    const float GRAVITY = 1980.f;
-    const float JUMP_FORCE = -750.f;
+    const float GRAVITY = 2200.f;
+    const float JUMP_FORCE = -1400.f;
 
     sf::Time mGhostJumpTimer;
     const sf::Time GhostJump_DURATION = sf::seconds(0.07f);

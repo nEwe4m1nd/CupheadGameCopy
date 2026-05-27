@@ -2,9 +2,10 @@
 #include "include.hpp"
 
 enum class PlatformType {
-    Solid,  // стена
-    OneWay, // полустена
-    Death   // шипы
+    Solid = 0,         // ¬идима€ стена/пол
+    OneWay = 1,        // ѕолустена (летающие платформы)
+    Death = 2,         // Ўипы
+    InvisibleSolid = 3 // Ќ≈¬»ƒ»ћјя стена/пол дл€ границ экрана
 };
 
 class Platform {
@@ -21,10 +22,9 @@ private:
     int mDirection;
     sf::Vector2f mVelocity;
 
-    sf::Texture mTexture;
-
 public:
-   Platform(sf::Vector2f position, sf::Vector2f size, PlatformType type,
+    Platform(sf::Vector2f position, sf::Vector2f size, PlatformType type,
+        const sf::Texture& texture,
         sf::Vector2f moveOffset = sf::Vector2f(0.f, 0.f), float speed = 0.f);
 
 public:

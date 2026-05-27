@@ -7,15 +7,22 @@ SunflowerBoss::SunflowerBoss(sf::Vector2f position)
     : Enemy(position, 1500.f, 1.f)
     , mBasePosition(position)
 {
-    // Безопасная загрузка текстуры (исправление warning C4834)
     if (!mTexture.loadFromFile("assets/sunflower.png")) {
         sf::Image img({ 200u, 300u }, sf::Color::Yellow);
         (void)mTexture.loadFromImage(img);
     }
     mSprite.setTexture(mTexture, true);
 
-    float actualHeight = mSprite.getLocalBounds().size.y;
-    mPosition.y -= actualHeight / 2.f - 30.f;
+    // 1. Устанавливаем новый масштаб босса
+    mSprite.setScale({ 1.7f, 1.7f });
+
+    // 2. Берем ГЛОБАЛЬНЫЕ размеры с учетом масштаба 1.6
+    float actualHeight = mSprite.getGlobalBounds().size.y;
+
+    // 3. Ставим босса ровно на ту координату Y, которую передали из файла уровня.
+    // Если из testLevel.txt придет Y = 950 (пол), мы вычитаем высоту босса, 
+    // чтобы его "ноги" ровно касались земли.
+    mPosition.y = position.y - actualHeight;
     mSprite.setPosition(mPosition);
     mBasePosition = mPosition;
 
