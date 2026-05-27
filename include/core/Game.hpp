@@ -9,6 +9,7 @@
 
 class Game {
 private:
+    bool mIsGameOver = false;
     sf::Vector2u WindowResolution;
     sf::RenderWindow GameWindow;
     sf::Clock Timer;
@@ -38,6 +39,8 @@ private:
     sf::Texture mTextureHoming;
     sf::Texture mTextureFloor;
     sf::Texture mTextureFlying;
+    sf::Texture mTextureBullet;
+    sf::Texture mTextureSuper;
 
 public:
     Game();

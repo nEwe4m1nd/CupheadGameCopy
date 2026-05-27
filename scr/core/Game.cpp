@@ -47,13 +47,15 @@ Game::Game()
     if (!mTextureLeaf.loadFromFile("assets/leaf.png")) {
         std::cerr << "Failed to load assets/leaf.png" << std::endl;
     }
+    mTextureBullet.loadFromFile("assets/peashot.png");
+    mTextureSuper.loadFromFile("assets/peashot_EX.png");
 
     // Загрузка уровня и передача платформ игроку
     loadLevel("include/levels/testLevel.txt");
     mPlayer.setPlatforms(mPlatforms);
 
     // ИСПРАВЛЕНИЕ: Появление игрока на земле в начале битвы
-    mPlayer.setPosition({ 0, 0 });
+    mPlayer.setPosition({ 0, 650 });
 
     srand(static_cast<unsigned>(time(nullptr)));
 }

@@ -127,12 +127,7 @@ void SunflowerBoomerangState::update(float dt) {
     if (stateTimer > 2.5f && !returningPhase) {
         returningPhase = true;
 
-        // РАСЧЕТ: К какой из трех линий атаки ближе всего игрок в момент возврата?
-        float playerY = ctx.boss->getLastPlayerPos().y;
-        float targetLaneY = getClosestLaneY(playerY, ctx.boss->getBasePosition().y);
-
-        // Бумеранг возвращается строго по этой вычисленной горизонтальной траектории
-        sf::Vector2f returnPos(-100.f, targetLaneY + 170);
+        sf::Vector2f returnPos(-150.f, 700.f);
         sf::Vector2f returnDir(1.f, 0.f);
 
         ctx.boss->getProjectiles().emplace_back(returnPos, returnDir, 600.f, 1.f, false);
@@ -181,7 +176,7 @@ void SunflowerVinesState::exit() {}
 void SunflowerLungeState::enter() {
     // РАСЧЕТ: К какой из трех линий атаки ближе всего игрок в момент старта?
     float playerY = ctx.boss->getLastPlayerPos().y;
-    float targetLaneY = getClosestLaneY(playerY, ctx.boss->getBasePosition().y);
+    float targetLaneY = getClosestLaneY(playerY, ctx.boss->getBasePosition().y + 150);
 
     // Запоминаем точную высоту выбранной линии атаки
     sf::Vector2f pos = ctx.boss->getPosition();
@@ -199,7 +194,7 @@ void SunflowerLungeState::update(float dt) {
     if (stateTimer < totalDuration) {
         // Синусоида растянута на 3.6 секунды, движение стало очень плавным и читаемым
         float angle = stateTimer * (3.14159265f / totalDuration);
-        pos.x = ctx.boss->getBasePosition().x - std::sin(angle) * 1200.f;
+        pos.x = ctx.boss->getBasePosition().x - std::sin(angle) * 1500.f;
     }
     else {
         // Возвращаемся в исходную точку

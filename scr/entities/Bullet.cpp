@@ -3,8 +3,8 @@
 Bullet::Bullet(sf::Vector2f position, sf::Vector2f direction, float speed)
     : mDirection(direction), mSpeed(speed), mIsActive(true)
 {
-    mShape.setSize({ 12.f, 6.f });
-    mShape.setFillColor(sf::Color::Yellow);
+    mShape.setSize({ 24.f, 10.f });
+    mShape.setFillColor({127, 199, 255});
     mShape.setPosition(position);
 
     float angle = std::atan2(mDirection.y, mDirection.x) * 180.f / 3.14159265f;

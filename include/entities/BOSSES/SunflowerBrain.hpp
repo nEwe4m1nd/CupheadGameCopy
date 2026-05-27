@@ -30,7 +30,7 @@ public:
         if (roll < 20) return AttackID::Acorns;
         else if (roll < 40) return AttackID::Gatling;
         else if (roll < 60) return AttackID::Boomerang;
-        else if (roll < 80) return AttackID::Vines;
+        //else if (roll < 80) return AttackID::Vines;
         else return AttackID::Lunge;
     }
 };

@@ -132,7 +132,7 @@ void Player::update(sf::Time deltaTime) {
     // Находим блок прыжка в Player::update
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) {
         if (mIsGrounded || mCanGhostJump) {
-            mVelocityY = JUMP_FORCE * 1.225f; 
+            mVelocityY = JUMP_FORCE * 1.1f; 
             mIsGrounded = false;
             mCanGhostJump = false;
             mIsDashing = false;
@@ -143,10 +143,9 @@ void Player::update(sf::Time deltaTime) {
     if (!mIsGrounded && !mIsDashing) {
         if (mVelocityY < 0.f) {
 
-            mVelocityY += (GRAVITY * 1.5f) * dt;
+            mVelocityY += (GRAVITY * 1.7f) * dt;
         }
         else {
-            // Падение вниз становится еще более тяжелым и быстрым
             mVelocityY += (GRAVITY * 2.2f) * dt;
         }
     }
@@ -265,7 +264,7 @@ void Player::handleShooting(sf::Time deltaTime) {
 
     // обычная атака
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::X) && mShootTimer >= SHOOT_COOLDOWN) {
-        sf::Vector2f spawnPos = mPosition + sf::Vector2f(25.f, 40.f);
+        sf::Vector2f spawnPos = mPosition + sf::Vector2f(110.f, 100.f);
         spawnPos += mLastLookDirection * 30.f;
 
         switch (mCurrentWeapon) {
@@ -288,7 +287,7 @@ void Player::handleShooting(sf::Time deltaTime) {
 
     // супер атака 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::V) && mSuperMeter >= 5.f) {
-        sf::Vector2f spawnPos = mPosition + sf::Vector2f(25.f, 40.f);
+        sf::Vector2f spawnPos = mPosition + sf::Vector2f(110.f, 100.f);
         spawnPos += mLastLookDirection * 40.f;
 
         switch (mCurrentSuper) {
