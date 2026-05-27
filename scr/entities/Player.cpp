@@ -18,10 +18,13 @@ Player::Player()
     , mCanDash(true)
 {
     if (!mTexture.loadFromFile("assets/player.png")) {
-        sf::Image defaultImage({ 50u, 80u }, sf::Color::Cyan);
+        sf::Image img({ 50u, 80u }, sf::Color::Blue);
+        (void)mTexture.loadFromImage(img);
     }
+    // ВАЖНО: Перепривязываем текстуру к спрайту явно
     mSprite.setTexture(mTexture, true);
     mSprite.setScale({ 1.5f, 1.5f });
+
 }
 
 void Player::setPlatforms(const std::vector<Platform>& platforms) {
@@ -200,6 +203,7 @@ void Player::update(sf::Time deltaTime) {
 
     mPosition.y += mVelocityY * dt;
     mSprite.setPosition(mPosition);
+    std::cout << mPosition.x << " " << mPosition.y;
     bool touchedGroundThisFrame = false;
 
     if (mPlatforms != nullptr) {

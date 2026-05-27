@@ -53,7 +53,7 @@ Game::Game()
     mPlayer.setPlatforms(mPlatforms);
 
     // ИСПРАВЛЕНИЕ: Появление игрока на земле в начале битвы
-    mPlayer.setPosition({ 300.f, 850.f });
+    mPlayer.setPosition({ 0, 0 });
 
     srand(static_cast<unsigned>(time(nullptr)));
 }
@@ -95,7 +95,7 @@ Game::Game(sf::Vector2u windowResolution)
     mPlayer.setPlatforms(mPlatforms);
 
     // ИСПРАВЛЕНИЕ: Появление игрока на земле в начале битвы
-    mPlayer.setPosition({ 300.f, 850.f });
+    mPlayer.setPosition({ 0.f, 0.f });
 
     srand(static_cast<unsigned>(time(nullptr)));
 }
@@ -345,6 +345,8 @@ void Game::render() {
     // Рисуем фон первым
     GameWindow.draw(mBackgroundSprite);
 
+    mPlayer.draw(GameWindow);
+
     // Рисуем всё остальное поверх фона
     for (auto& platform : mPlatforms) {
         platform.draw(GameWindow);
@@ -353,8 +355,6 @@ void Game::render() {
     for (auto& enemy : mEnemies) {
         enemy->draw(GameWindow);
     }
-
-    mPlayer.draw(GameWindow);
 
     GameWindow.display();
 }

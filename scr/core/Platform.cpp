@@ -1,9 +1,6 @@
 #include "core/Platform.hpp"
 #include <cmath>
 
-#include "core/Platform.hpp"
-#include <cmath>
-
 Platform::Platform(sf::Vector2f position, sf::Vector2f size, PlatformType type,
     const sf::Texture& texture, sf::Vector2f moveOffset, float speed)
     : mType(type)
@@ -20,6 +17,7 @@ Platform::Platform(sf::Vector2f position, sf::Vector2f size, PlatformType type,
     if (mType == PlatformType::Solid)   mShape.setFillColor(sf::Color(100, 100, 100));
     if (mType == PlatformType::OneWay)  mShape.setFillColor(sf::Color(0, 255, 0));
     if (mType == PlatformType::Death)   mShape.setFillColor(sf::Color(255, 0, 0));
+    if (mType == PlatformType::InvisibleSolid) mIsVisible = false;
 
     // Натягиваем текстуру, которую передал класс Game через центральный менеджер
     if (mType == PlatformType::Solid || mType == PlatformType::OneWay) {

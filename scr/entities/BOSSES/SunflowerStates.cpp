@@ -37,7 +37,7 @@ void SunflowerIdleState::exit() {}
 // ==========================================
 void SunflowerAcornsState::enter() {
     shotsFired = 0;
-    fireTimer = 1.0f;
+    fireTimer = 1.5f;
     fireOrder = { 0, 1, 2 };
 
     std::default_random_engine rng(static_cast<unsigned>(std::time(nullptr)));
@@ -53,7 +53,7 @@ void SunflowerAcornsState::update(float dt) {
 
         // Координата Y: центральная точка босса - 15, + шаг 15 единиц
         // fireOrder хранит числа 0, 1 или 2 в случайном порядке
-        float spawnY = ctx.boss->getPosition().y - 15.f + (fireOrder[shotsFired] * 15.f);
+        float spawnY = 320.f + (fireOrder[shotsFired] * 35.f);
 
         sf::Vector2f spawnPos(spawnX, spawnY);
 
@@ -115,7 +115,7 @@ void SunflowerBoomerangState::enter() {
 
     // Вылетает всегда по фиксированной Средней линии босса
     sf::Vector2f spawnPos = ctx.boss->getPosition();
-    spawnPos.y = ctx.boss->getBasePosition().y;
+    spawnPos.y = ctx.boss->getBasePosition().y + 340.f;
     sf::Vector2f direction(-1.f, 0.f);
 
     ctx.boss->getProjectiles().emplace_back(spawnPos, direction, 600.f, 1.f, false);
@@ -132,7 +132,7 @@ void SunflowerBoomerangState::update(float dt) {
         float targetLaneY = getClosestLaneY(playerY, ctx.boss->getBasePosition().y);
 
         // Бумеранг возвращается строго по этой вычисленной горизонтальной траектории
-        sf::Vector2f returnPos(-100.f, targetLaneY);
+        sf::Vector2f returnPos(-100.f, targetLaneY + 170);
         sf::Vector2f returnDir(1.f, 0.f);
 
         ctx.boss->getProjectiles().emplace_back(returnPos, returnDir, 600.f, 1.f, false);
