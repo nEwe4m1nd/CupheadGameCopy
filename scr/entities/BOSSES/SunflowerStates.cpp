@@ -6,7 +6,6 @@
 #include <random> 
 #include <ctime>
 
-// Вспомогательная функция для определения ближайшей линии атаки (Сетка из 3 линий)
 float getClosestLaneY(float playerY, float baseY) {
     float topLane = baseY - 150.f; // Верхняя линия
     float middleLane = baseY;         // Средняя линия
@@ -21,7 +20,7 @@ float getClosestLaneY(float playerY, float baseY) {
     return middleLane; // Если ближе всего к центру
 }
 
-// --- IDLE STATE ---
+
 void SunflowerIdleState::enter() {}
 void SunflowerIdleState::update(float dt) {
     BossState::update(dt);
@@ -32,9 +31,7 @@ void SunflowerIdleState::update(float dt) {
 }
 void SunflowerIdleState::exit() {}
 
-// ==========================================
 // 1. АТАКА ЖЕЛУДЯМИ 
-// ==========================================
 void SunflowerAcornsState::enter() {
     shotsFired = 0;
     fireTimer = 1.5f;
@@ -48,11 +45,8 @@ void SunflowerAcornsState::update(float dt) {
     fireTimer -= dt;
 
     if (fireTimer <= 0.0f && shotsFired < 3) {
-        // Координата X: ровно 30 единиц перед боссом
         float spawnX = ctx.boss->getPosition().x - 30.f;
 
-        // Координата Y: центральная точка босса - 15, + шаг 15 единиц
-        // fireOrder хранит числа 0, 1 или 2 в случайном порядке
         float spawnY = 320.f + (fireOrder[shotsFired] * 35.f);
 
         sf::Vector2f spawnPos(spawnX, spawnY);
@@ -72,9 +66,7 @@ void SunflowerAcornsState::update(float dt) {
 }
 void SunflowerAcornsState::exit() {}
 
-// ==========================================
 // 2. ГАТЛИНГ (Периодичность 1с, ровно 12 пуль, скорость / 2)
-// ==========================================
 void SunflowerGatlingState::enter() {
     shootTimer = 0.0f;
     shotsFired = 0;
@@ -83,37 +75,30 @@ void SunflowerGatlingState::update(float dt) {
     BossState::update(dt);
     shootTimer += dt;
 
-    // Вылетают строго с периодичностью в 1 секунду по 1 штуке
     if (shootTimer >= 1.0f && shotsFired < 12) {
-        // Спавн сверху экрана по случайной координате X
         float randX = static_cast<float>((rand() % 1400) + 100);
         sf::Vector2f spawnPos(randX, -50.f);
-        sf::Vector2f direction(0.f, 1.f); // Падают строго вниз
+        sf::Vector2f direction(0.f, 1.f); 
 
-        // Шанс 30% на розовую пулю
         bool isPink = (rand() % 100 < 30);
 
-        // СКОРОСТЬ СНИЖЕНА В 2 РАЗА (было 350.f -> стало 175.f)
         ctx.boss->getProjectiles().emplace_back(spawnPos, direction, 175.f, 1.f, isPink);
 
         shotsFired++;
-        shootTimer = 0.0f; // Сброс таймера до следующей секунды
+        shootTimer = 0.0f; 
     }
 
-    // Завершаем атаку, когда все 12 снарядов выпущены
     if (shotsFired >= 12 && shootTimer > 1.0f) {
         isCompleted = true;
     }
 }
 void SunflowerGatlingState::exit() {}
 
-// ==========================================
-// 3. БУМЕРАНГ (По четким линиям атаки)
-// ==========================================
+
+// 3. БУМЕРАНГ 
 void SunflowerBoomerangState::enter() {
     returningPhase = false;
 
-    // Вылетает всегда по фиксированной Средней линии босса
     sf::Vector2f spawnPos = ctx.boss->getPosition();
     spawnPos.y = ctx.boss->getBasePosition().y + 340.f;
     sf::Vector2f direction(-1.f, 0.f);
@@ -137,9 +122,7 @@ void SunflowerBoomerangState::update(float dt) {
 }
 void SunflowerBoomerangState::exit() {}
 
-// ==========================================
 // 4. ЛОЗЫ (Выросли -> оставили миньона -> уползли)
-// ==========================================
 void SunflowerVinesState::enter() {
     vinesSpawned = 0;
     vineTimer = 0.0f;
@@ -148,19 +131,12 @@ void SunflowerVinesState::update(float dt) {
     BossState::update(dt);
     vineTimer += dt;
 
-    // Интервал между лозами 1.5 секунды, максимум 3 лозы
     if (vineTimer >= 1.5f && vinesSpawned < 3) {
         float randX = static_cast<float>((rand() % 1100) + 200);
 
-        // Лоза вылезает из-под земли (например, Y = 900)
         sf::Vector2f groundPos(randX, 900.f);
 
-        // Логика: Выросла, оставила летающего миньона на верхушке и уползла назад.
-        // Спавним FlyingChomper, который сам по себе будет летать по карте и атаковать
         ctx.boss->getMinions().push_back(std::make_unique<FlyingChomper>(groundPos));
-
-        // Примечание: Если у тебя есть отдельный класс спрайта/анимации лозы VineObject,
-        // ты можешь спавнить его здесь параллельно с миньоном, задав ему время жизни 1 сек.
 
         vinesSpawned++;
         vineTimer = 0.0f;
@@ -170,15 +146,11 @@ void SunflowerVinesState::update(float dt) {
 }
 void SunflowerVinesState::exit() {}
 
-// ==========================================
-// 5. АТАКА ГОЛОВОЙ (По четкой линии, СКОРОСТЬ СНИЖЕНА В 6 РАЗ)
-// ==========================================
+// 5. АТАКА ГОЛОВОЙ 
 void SunflowerLungeState::enter() {
-    // РАСЧЕТ: К какой из трех линий атаки ближе всего игрок в момент старта?
     float playerY = ctx.boss->getLastPlayerPos().y;
     float targetLaneY = getClosestLaneY(playerY, ctx.boss->getBasePosition().y + 150);
 
-    // Запоминаем точную высоту выбранной линии атаки
     sf::Vector2f pos = ctx.boss->getPosition();
     pos.y = targetLaneY;
     ctx.boss->setPosition(pos);
@@ -187,17 +159,13 @@ void SunflowerLungeState::update(float dt) {
     BossState::update(dt);
     sf::Vector2f pos = ctx.boss->getPosition();
 
-    // СКОРОСТЬ СНИЖЕНА В 6 РАЗ: 
-    // Прежний цикл выпада занимал 0.6 сек. Теперь он занимает 0.6 * 6 = 3.6 секунды!
     float totalDuration = 3.6f;
 
     if (stateTimer < totalDuration) {
-        // Синусоида растянута на 3.6 секунды, движение стало очень плавным и читаемым
         float angle = stateTimer * (3.14159265f / totalDuration);
-        pos.x = ctx.boss->getBasePosition().x - std::sin(angle) * 1500.f;
+        pos.x = ctx.boss->getBasePosition().x - std::sin(angle) * 1200.f;
     }
     else {
-        // Возвращаемся в исходную точку
         pos.x = ctx.boss->getBasePosition().x;
         pos.y = ctx.boss->getBasePosition().y;
         isCompleted = true;

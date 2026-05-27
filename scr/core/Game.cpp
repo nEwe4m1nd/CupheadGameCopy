@@ -50,7 +50,7 @@ Game::Game()
     mTextureBullet.loadFromFile("assets/peashot.png");
     mTextureSuper.loadFromFile("assets/peashot_EX.png");
 
-    if (!mFont.openFromFile("assets/fonts/Gatok.otf")) {
+    if (!mFont.openFromFile("assets/fronts/Gatok.otf")) {
         std::cerr << "Failed to load font" << std::endl;
     }
     else {
@@ -101,7 +101,7 @@ Game::Game(sf::Vector2u windowResolution)
         std::cerr << "Failed to load assets/leaf.png" << std::endl;
     }
 
-    if (!mFont.openFromFile("assets/fonts/Gatok.otf")) {
+    if (!mFont.openFromFile("assets/fronts/Gatok.otf")) {
         std::cerr << "Failed to load font" << std::endl;
     }
     else {
