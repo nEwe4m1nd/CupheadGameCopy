@@ -22,7 +22,7 @@ Player::Player()
         (void)mTexture.loadFromImage(img);
     }
     mSprite.setTexture(mTexture, true);
-    mSprite.setScale({ 1.0f, 1.3f });
+    mSprite.setScale({ 1.5f, 1.5f });
 
 }
 
